@@ -1,0 +1,4 @@
+interface:
+  display_name: "Build Shared Trip App"
+  short_description: "Turn any itinerary into a shared travel PWA"
+  default_prompt: "Use $build-shared-trip-app to turn my itinerary and trip files into a synchronized multilingual travel PWA."
