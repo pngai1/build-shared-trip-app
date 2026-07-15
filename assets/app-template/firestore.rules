@@ -1,0 +1,66 @@
+rules_version = '2';
+
+service cloud.firestore {
+  function validTrip(trip) {
+    return trip is map
+      && trip.keys().hasAll(['title', 'startDate', 'timezone', 'days', 'reminders'])
+      && trip.keys().hasOnly([
+        'title', 'shortName', 'slug', 'buildId', 'country', 'timezone', 'startDate', 'endDate',
+        'metaDescription',
+        'routeDecoration', 'colorScheme', 'theme', 'participantGroups', 'weather',
+        'resources', 'preTrip', 'flights', 'flightBookings', 'googlePlaceLinks',
+        'hotelAreas', 'disclaimer', 'tips',
+        'reminders', 'days', 'i18n'
+      ])
+      && trip.title is string
+      && trip.title.size() <= 160
+      && trip.startDate is string
+      && trip.startDate.size() <= 32
+      && trip.timezone is string
+      && trip.timezone.size() <= 80
+      && trip.days is list
+      && trip.days.size() > 0
+      && trip.days.size() <= 31
+      && trip.reminders is list
+      && trip.reminders.size() <= 80
+      && (!('participantGroups' in trip) || (trip.participantGroups is list && trip.participantGroups.size() <= 30))
+      && (!('tips' in trip) || (trip.tips is list && trip.tips.size() <= 80))
+      && (!('hotelAreas' in trip) || (trip.hotelAreas is list && trip.hotelAreas.size() <= 31))
+      && (!('disclaimer' in trip) || (trip.disclaimer is string && trip.disclaimer.size() <= 3000))
+      && (!('preTrip' in trip) || trip.preTrip is map)
+      && (!('flights' in trip) || trip.flights is map)
+      && (!('weather' in trip) || trip.weather is map)
+      && (!('resources' in trip) || trip.resources is map);
+  }
+
+  match /databases/{database}/documents {
+    match /__FIRESTORE_COLLECTION__/__FIRESTORE_DOCUMENT_ID__ {
+      allow read: if request.auth != null;
+
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly([
+          'trip', 'schemaVersion', 'createdAt', 'updatedAt', 'updatedBy'
+        ])
+        && request.resource.data.schemaVersion == 1
+        && validTrip(request.resource.data.trip)
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.updatedBy == request.auth.uid;
+
+      allow update: if request.auth != null
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'trip', 'schemaVersion', 'updatedAt', 'updatedBy'
+        ])
+        && request.resource.data.schemaVersion == 1
+        && validTrip(request.resource.data.trip)
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.updatedBy == request.auth.uid;
+
+      allow delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

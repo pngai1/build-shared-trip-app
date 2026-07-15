@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#17362f">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="__APP_SHORT_NAME_HTML__">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="description" content="__RESOURCES_DESCRIPTION_HTML__">
+  <title>Travel resources · __APP_NAME_HTML__</title>
+  <link rel="manifest" href="/manifest.webmanifest?v=__CACHE_VERSION__">
+  <link rel="icon" href="/icons/icon-192.png?v=__CACHE_VERSION__" type="image/png" sizes="192x192">
+  <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png?v=__CACHE_VERSION__">
+  <link rel="stylesheet" href="/styles.css?v=__CACHE_VERSION__">
+</head>
+<body class="resources-page">
+  <header class="resource-page-header">
+    <div class="resource-page-header__inner">
+      <div class="resource-header-bar">
+        <a class="brand brand--resource" href="/" aria-label="__APP_NAME_HTML__">
+          <img class="brand-icon" src="/icons/icon-192.png?v=__CACHE_VERSION__" width="44" height="44" alt="" aria-hidden="true">
+          <span class="brand-name">__APP_NAME_HTML__</span>
+        </a>
+        <label class="language-control" for="language-select">
+          <span class="sr-only" data-i18n="language">Language</span>
+          <select id="language-select" aria-label="Language">
+            <option value="en">English</option>
+            <option value="zh-Hans">简体中文</option>
+            <option value="zh-Hant">繁體中文</option>
+            <option value="ja">日本語</option>
+          </select>
+        </label>
+      </div>
+      <a class="back-link" href="/" data-i18n="backToTrip">← Back to the trip</a>
+      <h1 data-i18n="travelResources">Payments & useful apps</h1>
+    </div>
+  </header>
+
+  <main class="resource-page-main">
+    <section class="resource-page-section" aria-labelledby="payment-page-title">
+      <h2 id="payment-page-title" data-i18n="routePaymentGuide">Payment methods along the route</h2>
+      <div id="payment-page-content"></div>
+    </section>
+
+    <section class="resource-page-section" aria-labelledby="apps-page-title">
+      <h2 id="apps-page-title" data-i18n="iosAppsForTrip">Useful local apps</h2>
+      <div id="apps-page-content"></div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p data-i18n="resourceFreshness">Payment support and app availability can change; use the linked official pages to verify important details.</p>
+    </div>
+  </footer>
+
+  <script id="trip-data" type="application/json">
+__TRIP_DATA_JSON__
+  </script>
+  <script type="module" src="/resources.js?v=__CACHE_VERSION__"></script>
+</body>
+</html>

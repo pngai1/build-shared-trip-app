@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#17362f">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="__APP_SHORT_NAME_HTML__">
+  <meta name="format-detection" content="telephone=no">
+  <meta id="meta-description" name="description" content="__META_DESCRIPTION_HTML__">
+  <title>__APP_NAME_HTML__</title>
+  <script>
+    try {
+      if (new URL(location.href).searchParams.get('view') === 'plan'
+        && matchMedia('(max-width: 679px), (max-height: 500px) and (pointer: coarse)').matches) {
+        document.documentElement.classList.add('is-itinerary-view');
+      }
+    } catch (_) {}
+  </script>
+  <link rel="manifest" href="/manifest.webmanifest?v=__CACHE_VERSION__">
+  <link rel="icon" href="/icons/icon-192.png?v=__CACHE_VERSION__" type="image/png" sizes="192x192">
+  <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png?v=__CACHE_VERSION__">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
+  <link rel="stylesheet" href="/styles.css?v=__CACHE_VERSION__">
+  <style>
+    .photo-frame img { object-fit: cover; }
+    @media (min-width: 680px) { body { --trip-desktop-layout: 1; } }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main-content" data-i18n="skipToItinerary">Skip to itinerary</a>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="header-bar">
+        <div class="header-actions">
+          <label class="language-control" for="language-select">
+            <span class="sr-only" data-i18n="language">Language</span>
+            <select id="language-select" aria-label="Language" data-i18n-aria-label="language">
+              <option value="en">English</option>
+              <option value="zh-Hans">简体中文</option>
+              <option value="zh-Hant">繁體中文</option>
+              <option value="ja">日本語</option>
+            </select>
+          </label>
+          <div class="sync-status" id="sync-status" data-state="working" role="status" aria-live="polite">
+            <span class="sync-dot" aria-hidden="true"></span>
+            <span id="sync-status-text" data-i18n="connecting">Connecting…</span>
+          </div>
+          <button class="button button--light" id="install-app" type="button" hidden data-i18n="install">Install</button>
+          <a class="button button--light header-resource-link" href="/resources.html?v=__CACHE_VERSION__" data-i18n="paymentsAndApps">Payments & apps</a>
+        </div>
+      </div>
+
+      <div class="hero">
+        <div class="hero-meta">
+          <p class="hero-trip-meta" id="trip-date-range">__TRIP_DATE_LINE_HTML__</p>
+        </div>
+        <div class="hero-title-lockup">
+          <img class="hero-title-icon" src="/icons/icon-192.png?v=__CACHE_VERSION__" width="104" height="104" alt="" aria-hidden="true">
+          <h1 id="trip-title">__APP_NAME_HTML__</h1>
+        </div>
+        <div class="hero-subline">
+          <p class="hero-route" id="trip-route-decoration">__ROUTE_DECORATION_HTML__</p>
+          <p class="muted" id="last-updated" data-i18n="liveTripBoard">Live trip board</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-shell" id="main-content">
+    <div class="quick-grid">
+      <details class="quick-panel checklist-panel">
+        <summary class="quick-panel__summary">
+          <span class="quick-panel__heading">
+            <span class="eyebrow" data-i18n="beforeDeparture">Before departure</span>
+            <strong id="checklist-title" data-i18n="sharedChecklist">Shared checklist</strong>
+          </span>
+          <span class="count-chip" id="reminder-count">4 open</span>
+          <span class="summary-chevron" aria-hidden="true">⌄</span>
+        </summary>
+        <div class="quick-panel__body">
+          <div class="quick-panel__actions">
+            <p class="muted" data-i18n="checklistSyncHint">Changes sync automatically.</p>
+            <button class="button button--quiet button--small" id="add-reminder" type="button" data-i18n="addTodoButton">+ Add to-do</button>
+          </div>
+          <div id="reminder-list"></div>
+        </div>
+      </details>
+
+      <section class="quick-panel weather-compact" aria-labelledby="weather-compact-title">
+        <div id="active-weather"></div>
+      </section>
+    </div>
+
+    <section class="itinerary" aria-labelledby="itinerary-title">
+      <header class="itinerary-heading">
+        <h2 class="itinerary-title" id="itinerary-title" data-i18n="itineraryTitle">Itinerary</h2>
+        <p class="itinerary-heading__note" data-i18n="oneDayAtATime">Choose a date to see that day’s plan. Today opens automatically during the trip.</p>
+      </header>
+
+      <a class="mobile-plan-launch" id="open-plan-view" href="?view=plan">
+        <span class="mobile-plan-launch__icon" aria-hidden="true">↗</span>
+        <span>
+          <strong data-i18n="openInteractivePlan">Open interactive plan</strong>
+          <span data-i18n="openInteractivePlanHint">Map, dates and today’s ordered itinerary</span>
+        </span>
+        <span class="mobile-plan-launch__arrow" aria-hidden="true">›</span>
+      </a>
+
+      <div class="plan-workspace">
+        <aside class="map-rail" aria-labelledby="map-title">
+          <button class="plan-back-button" id="close-plan-view" type="button" data-i18n-aria-label="backToOverview" aria-label="Back to overview">←</button>
+          <label class="plan-language-control" for="plan-language-select">
+            <span class="sr-only" data-i18n="language">Language</span>
+            <select id="plan-language-select" aria-label="Language" data-i18n-aria-label="language">
+              <option value="en">English</option>
+              <option value="zh-Hans">简体中文</option>
+              <option value="zh-Hant">繁體中文</option>
+              <option value="ja">日本語</option>
+            </select>
+          </label>
+          <div class="map-heading">
+            <div>
+              <p class="eyebrow" id="map-day-label" data-i18n="activeDayRoute">Active day</p>
+              <h2 id="map-title">Today’s area</h2>
+            </div>
+          </div>
+          <div class="map-frame">
+            <div id="map" role="region" aria-label="Interactive map of the active itinerary day" data-i18n-aria-label="mapAria"></div>
+            <p class="map-offline" id="map-offline" hidden data-i18n="mapOffline">The written itinerary remains available offline. Map tiles return when you reconnect.</p>
+          </div>
+        </aside>
+        <section class="itinerary-sheet" aria-label="Daily itinerary" data-i18n-aria-label="dailyItinerary">
+          <div
+            class="itinerary-sheet__handle"
+            id="itinerary-sheet-handle"
+            role="separator"
+            tabindex="0"
+            aria-orientation="horizontal"
+            aria-controls="map itinerary-days"
+            aria-valuemin="33"
+            aria-valuemax="68"
+            aria-valuenow="33"
+            aria-valuetext="More itinerary"
+            aria-label="Resize map and itinerary panels"
+            data-i18n-aria-label="resizeItineraryPanel"
+          ><span aria-hidden="true"></span></div>
+          <div class="days-nav-wrap">
+            <nav class="days-nav" id="days-nav" aria-label="Choose a trip day" data-i18n-aria-label="jumpDayNav"></nav>
+          </div>
+          <div class="itinerary-panel" id="itinerary-days"></div>
+        </section>
+      </div>
+    </section>
+
+    <details class="logistics-panel" hidden>
+      <summary class="bookings-summary">
+        <span>
+          <span class="eyebrow" data-i18n="bookedAndReady">Booked and ready</span>
+          <strong class="logistics-heading" id="logistics-title" data-i18n="bookingsAtGlance">Bookings at a glance</strong>
+        </span>
+        <span class="bookings-summary__meta" data-i18n="bookingsSummary">Bookings are included in the daily itinerary</span>
+        <span class="summary-chevron" aria-hidden="true">⌄</span>
+      </summary>
+      <div class="logistics-panel__body">
+        <div class="logistics-grid">
+          <div class="logistics-block">
+            <p class="eyebrow" data-i18n="flights">Flights</p>
+            <div class="flight-list" id="flight-list"></div>
+          </div>
+          <div class="logistics-block">
+            <p class="eyebrow" data-i18n="stays">Stays</p>
+            <div class="hotel-list" id="hotel-list"></div>
+          </div>
+        </div>
+        <p class="disclaimer" id="trip-disclaimer">Check same-day weather, road conditions, opening hours and event schedules before leaving.</p>
+      </div>
+    </details>
+
+    <details class="tips-section">
+      <summary class="tips-summary">
+        <strong id="tips-title" data-i18n="tripNotes">Trip notes</strong>
+        <span class="summary-chevron" aria-hidden="true">⌄</span>
+      </summary>
+      <ul id="tips-list"></ul>
+    </details>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p data-i18n="anonymousFooter">If we get lost, the deer is officially our tour guide. 🦌</p>
+      <div class="footer-attribution">
+        <details class="footer-credits">
+          <summary data-i18n="credits">Sources & photo credits</summary>
+          <div class="footer-credits__list" id="credits-list"></div>
+        </details>
+      </div>
+    </div>
+  </footer>
+
+  <dialog class="item-dialog" id="item-dialog" aria-labelledby="dialog-title">
+    <form class="item-form" id="item-form" method="dialog">
+      <div class="dialog-header">
+        <h2 id="dialog-title" data-i18n="editPlan">Edit plan</h2>
+        <button class="dialog-close" type="button" data-close-dialog aria-label="Close" data-i18n-aria-label="close">×</button>
+      </div>
+      <input type="hidden" name="dayId">
+      <input type="hidden" name="slotId">
+      <div class="form-grid">
+        <label class="form-field">
+          <span data-i18n="name">Name</span>
+          <input name="name" required maxlength="120" autocomplete="off" data-i18n-placeholder="namePlaceholder">
+        </label>
+        <div class="form-row">
+          <label class="form-field">
+            <span data-i18n="partOfDay">Part of day</span>
+            <select name="period">
+              <option value="morning" data-i18n="morning">Morning</option>
+              <option value="noon" data-i18n="midday">Midday</option>
+              <option value="evening" data-i18n="evening">Evening</option>
+            </select>
+          </label>
+          <label class="form-field">
+            <span data-i18n="time">Time</span>
+            <select name="time" id="plan-time">
+              <option value="" data-i18n="flexible">Flexible</option>
+            </select>
+          </label>
+        </div>
+        <div class="form-row">
+          <label class="form-field">
+            <span data-i18n="planType">Type</span>
+            <select name="planType">
+              <option value="sight" data-i18n="planTypeSight" selected>Sight</option>
+              <option value="activity" data-i18n="planTypeActivity">Activity</option>
+              <option value="restaurant" data-i18n="planTypeRestaurant">Restaurant</option>
+              <option value="flight" data-i18n="planTypeFlight">Flight</option>
+              <option value="stay" data-i18n="planTypeStay">Hotel</option>
+              <option value="transport" data-i18n="planTypeTransport">Transport</option>
+              <option value="car" data-i18n="planTypeCar">Car</option>
+              <option value="event" data-i18n="planTypeEvent">Event</option>
+              <option value="shopping" data-i18n="planTypeShopping">Shopping</option>
+              <option value="other" data-i18n="planTypeOther">Other</option>
+            </select>
+          </label>
+          <fieldset class="form-field form-fieldset">
+            <legend data-i18n="reservation">Reservation</legend>
+            <div class="segmented-control">
+              <label>
+                <input type="radio" name="booked" value="false" checked>
+                <span data-i18n="notBooked">Not booked / not needed</span>
+              </label>
+              <label>
+                <input type="radio" name="booked" value="true">
+                <span data-i18n="booked">Booked</span>
+              </label>
+            </div>
+          </fieldset>
+        </div>
+        <label class="form-field">
+          <span data-i18n="googleMapsLink">Google Maps place link</span>
+          <input
+            name="googleMapsUrl"
+            type="url"
+            required
+            maxlength="4096"
+            inputmode="url"
+            autocapitalize="none"
+            autocomplete="off"
+            spellcheck="false"
+            aria-describedby="google-maps-link-hint google-maps-link-error"
+            placeholder="https://www.google.com/maps/place/…/@latitude,longitude"
+            data-i18n-placeholder="googleMapsLinkPlaceholder"
+          >
+        </label>
+        <p class="form-hint" id="google-maps-link-hint" data-i18n="googleMapsLinkHint">Open the exact place in a computer browser, then copy the full address-bar URL. Short Share links do not work.</p>
+        <p class="form-error" id="google-maps-link-error" role="alert" hidden></p>
+        <div class="place-link-preview" id="google-maps-link-preview" role="status" aria-live="polite" hidden>
+          <span class="place-link-preview__check" aria-hidden="true">✓</span>
+          <span class="place-link-preview__copy">
+            <strong data-i18n="placeReady">Location ready</strong>
+            <span id="google-maps-place-label"></span>
+            <span class="muted" id="google-maps-place-coordinates"></span>
+          </span>
+        </div>
+        <label class="form-field">
+          <span data-i18n="whatToKnow">What to know</span>
+          <textarea name="review" maxlength="500" placeholder="Short description or plan" data-i18n-placeholder="reviewPlaceholder"></textarea>
+        </label>
+      </div>
+      <div class="dialog-actions">
+        <button class="button button--danger" id="delete-item" type="button" data-i18n="delete">Delete</button>
+        <div class="dialog-actions__right">
+          <button class="button button--quiet" type="button" data-close-dialog data-i18n="cancel">Cancel</button>
+          <button class="button" type="submit" data-i18n="saveForEveryone">Save for everyone</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="item-dialog todo-dialog" id="todo-dialog" aria-labelledby="todo-dialog-title">
+    <form class="item-form" id="todo-form" method="dialog">
+      <div class="dialog-header">
+        <h2 id="todo-dialog-title" data-i18n="addTodo">Add a to-do</h2>
+        <button class="dialog-close" type="button" data-close-todo-dialog aria-label="Close" data-i18n-aria-label="close">×</button>
+      </div>
+      <input type="hidden" name="reminderId">
+      <div class="form-grid">
+        <label class="form-field">
+          <span data-i18n="todoItem">To-do</span>
+          <input name="item" required maxlength="200" autocomplete="off" data-i18n-placeholder="todoPlaceholder">
+        </label>
+        <label class="form-field">
+          <span data-i18n="dueDate">Due date</span>
+          <input name="dueDate" type="date" required>
+        </label>
+        <p class="form-hint" data-i18n="todoDateHint">Choose a date on or before departure.</p>
+      </div>
+      <div class="dialog-actions">
+        <button class="button button--danger" id="delete-reminder" type="button" data-i18n="delete">Delete</button>
+        <div class="dialog-actions__right">
+          <button class="button button--quiet" type="button" data-close-todo-dialog data-i18n="cancel">Cancel</button>
+          <button class="button" type="submit" data-i18n="saveForEveryone">Save for everyone</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="install-dialog" id="install-dialog" aria-labelledby="install-dialog-title">
+    <div class="install-dialog__sheet">
+      <div class="dialog-header install-dialog__header">
+        <h2 id="install-dialog-title" data-i18n="iosInstallTitle">Add to iPhone Home Screen</h2>
+        <button class="dialog-close" type="button" data-close-install-dialog aria-label="Close" data-i18n-aria-label="close">×</button>
+      </div>
+      <div class="install-dialog__content">
+        <p class="install-safari-note" data-i18n="iosInstallSafariNote">If this page opened inside another app, open it in Safari first.</p>
+        <ol class="install-steps">
+          <li>
+            <span class="install-step-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" role="img"><path d="M12 16V3m0 0L8 7m4-4 4 4M6 10H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-1" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/></svg>
+            </span>
+            <span data-i18n="iosInstallStepShare">Tap the Share button at the bottom of Safari.</span>
+          </li>
+          <li>
+            <span class="install-step-icon install-step-icon--plus" aria-hidden="true">＋</span>
+            <span data-i18n="iosInstallStepHomeScreen">Scroll and choose Add to Home Screen.</span>
+          </li>
+          <li>
+            <span class="install-step-icon install-step-icon--check" aria-hidden="true">✓</span>
+            <span data-i18n="iosInstallStepOpenAsApp">Turn on Open as Web App, then tap Add.</span>
+          </li>
+        </ol>
+        <button class="button install-dialog__done" type="button" data-close-install-dialog data-i18n="iosInstallDone">Got it</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script id="trip-data" type="application/json">
+__TRIP_DATA_JSON__
+  </script>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+  <script>
+    function escapeHTML(s) {
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function buildNavLink(lat, lng, label, ua) {
+      var query = String(label || '').trim();
+      return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(query);
+    }
+
+    function buildGoogleMapsLink(lat, lng, label) {
+      return buildNavLink(lat, lng, label, '');
+    }
+
+    var GCJ_A = 6378245.0;
+    var GCJ_EE = 0.00669342162296594323;
+
+    function isInChinaBBox(lat, lng) {
+      return lng >= 72.004 && lng <= 137.8347 && lat >= 0.8293 && lat <= 55.8271;
+    }
+
+    function gcjTransformLat(x, y) {
+      var ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x));
+      ret += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+      ret += (20.0 * Math.sin(y * Math.PI) + 40.0 * Math.sin(y / 3.0 * Math.PI)) * 2.0 / 3.0;
+      ret += (160.0 * Math.sin(y / 12.0 * Math.PI) + 320.0 * Math.sin(y * Math.PI / 30.0)) * 2.0 / 3.0;
+      return ret;
+    }
+
+    function gcjTransformLng(x, y) {
+      var ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.sqrt(Math.abs(x));
+      ret += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+      ret += (20.0 * Math.sin(x * Math.PI) + 40.0 * Math.sin(x / 3.0 * Math.PI)) * 2.0 / 3.0;
+      ret += (150.0 * Math.sin(x / 12.0 * Math.PI) + 300.0 * Math.sin(x / 30.0 * Math.PI)) * 2.0 / 3.0;
+      return ret;
+    }
+
+    function gcj02ToWgs84(lat, lng) {
+      if (!isInChinaBBox(lat, lng)) return { lat: lat, lng: lng };
+      var dLat = gcjTransformLat(lng - 105.0, lat - 35.0);
+      var dLng = gcjTransformLng(lng - 105.0, lat - 35.0);
+      var radLat = lat / 180.0 * Math.PI;
+      var magic = Math.sin(radLat);
+      magic = 1 - GCJ_EE * magic * magic;
+      var sqrtMagic = Math.sqrt(magic);
+      dLat = (dLat * 180.0) / ((GCJ_A * (1 - GCJ_EE)) / (magic * sqrtMagic) * Math.PI);
+      dLng = (dLng * 180.0) / (GCJ_A / sqrtMagic * Math.cos(radLat) * Math.PI);
+      return { lat: lat - dLat, lng: lng - dLng };
+    }
+
+    function routeCoordinates(points) {
+      return points.map(function (p) { return [p.lat, p.lng]; });
+    }
+
+    function initTravelMap(elementId, points, opts) {
+      opts = opts || {};
+      var map = L.map(elementId, { zoomControl: false });
+      map.attributionControl.setPrefix(false);
+      L.control.zoom({
+        zoomInTitle: opts.zoomInTitle || 'Zoom in',
+        zoomOutTitle: opts.zoomOutTitle || 'Zoom out'
+      }).addTo(map);
+      L.tileLayer(opts.tileUrl || 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: opts.attribution || '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 19
+      }).addTo(map);
+
+      var popupInsets = opts.fitBoundsOptions || {};
+      var popupTopLeft = popupInsets.paddingTopLeft || [30, 30];
+      var popupBottomRight = popupInsets.paddingBottomRight || [30, 30];
+      var popupOptions = {
+        autoPanPaddingTopLeft: L.point(popupTopLeft[0], popupTopLeft[1]),
+        autoPanPaddingBottomRight: L.point(popupBottomRight[0], popupBottomRight[1])
+      };
+
+      points.forEach(function (p, i) {
+        var pointNumber = p.number || (i + 1);
+        var icon = L.divIcon({
+          className: 'route-pin',
+          html: '<span class="route-pin__num">' + pointNumber + '</span>',
+          iconSize: [28, 28],
+          iconAnchor: [14, 14]
+        });
+        var popupContent = '<b>' + pointNumber + '. ' + escapeHTML(p.name) + '</b><br>'
+          + (p.time ? escapeHTML(p.time) + '<br>' : '')
+          + '<a target="_blank" rel="noopener noreferrer" href="' + escapeHTML(p.googleMapsUrl || buildGoogleMapsLink(p.lat, p.lng, p.name)) + '">'
+          + escapeHTML(opts.googleMapsLabel || 'Open in Google Maps') + '</a>';
+        var marker = L.marker([p.lat, p.lng], { icon: icon })
+          .addTo(map)
+          .bindPopup(popupContent, popupOptions);
+        if (typeof opts.onPointClick === 'function') {
+          marker.on('click', function () { opts.onPointClick(p); });
+        }
+      });
+
+      var coords = routeCoordinates(points);
+      var routeGroups = points.reduce(function (groups, point) {
+        var key = point.routeGroup || 'shared-route';
+        (groups[key] = groups[key] || []).push([point.lat, point.lng]);
+        return groups;
+      }, {});
+      Object.keys(routeGroups).forEach(function (key) {
+        if (routeGroups[key].length > 1) {
+          L.polyline(routeGroups[key], { dashArray: '6 8', weight: 2, color: '#db7549' }).addTo(map);
+        }
+      });
+      var fitOptions = Object.assign({ padding: [30, 30], maxZoom: 13, animate: false }, opts.fitBoundsOptions || {});
+      if (coords.length > 1) map.fitBounds(coords, fitOptions);
+      else if (coords.length === 1) map.setView(coords[0], opts.singlePointZoom || 12);
+      return map;
+    }
+
+    function computeReminders(startDateISO, items) {
+      return items
+        .map(function (it) {
+          var d = /^\d{4}-\d{2}-\d{2}$/.test(String(it.dueDate || ''))
+            ? new Date(it.dueDate + 'T00:00:00Z')
+            : new Date(startDateISO + 'T00:00:00Z');
+          if (!it.dueDate) d.setUTCDate(d.getUTCDate() - it.leadDays);
+          return { id: it.id, item: it.item, leadDays: it.leadDays, deadline: d.toISOString().slice(0, 10) };
+        })
+        .sort(function (a, b) {
+          return a.deadline < b.deadline ? -1 : a.deadline > b.deadline ? 1 : 0;
+        });
+    }
+
+    function renderChecklistHTML(reminders, opts) {
+      opts = opts || {};
+      var lis = reminders.map(function (r) {
+        var beforeText = opts.formatBefore ? opts.formatBefore(r.deadline) : 'Before ' + r.deadline;
+        var daysAheadText = opts.formatDaysAhead ? opts.formatDaysAhead(r.leadDays) : r.leadDays + ' days ahead';
+        return '<li class="todo-item">'
+          + '<input type="checkbox"> '
+          + '<span class="todo-deadline">' + escapeHTML(beforeText) + '</span> '
+          + '<span class="todo-text">' + escapeHTML(r.item) + ' · ' + escapeHTML(daysAheadText) + '</span>'
+          + '</li>';
+      }).join('');
+      return '<ul class="pretrip-todo">' + lis + '</ul>';
+    }
+
+    function reminderBadgeHTML(leadDays) {
+      return '<span class="reminder-badge">Book about ' + leadDays + ' days ahead</span>';
+    }
+  </script>
+  <script type="module" src="/app.js?v=__CACHE_VERSION__"></script>
+</body>
+</html>
