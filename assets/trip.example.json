@@ -12,6 +12,7 @@
     }
   },
   "sync": {
+    "documentPath": "trips/tide-lines-sample-demo",
     "firestoreRegion": "nam5"
   },
   "trip": {
@@ -179,7 +180,6 @@
             "sortTime": "15:00",
             "planType": "stay",
             "booked": true,
-            "participantGroupIds": ["group-a", "group-b"],
             "review": "Leave bags, then walk into the old town.",
             "googleMapsUrl": "https://www.google.com/maps/place/Harbor+House,+2+Quay+Lane/@38.707000,-9.137000,16z/data=!4m6!3m5!1s0xc:0xd!8m2!3d38.707100!4d-9.136900!16s%2Fg%2Fsample2",
             "photo": {
