@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Leaping deer travel app icon">
+  <rect width="512" height="512" rx="112" fill="#17362f"/>
+  <g fill="none" stroke="#b8754d" stroke-linecap="round" stroke-linejoin="round">
+    <path stroke-width="30" d="M112 311c43-24 91-33 145-25 35 5 61-2 83-23 18-18 29-43 33-76"/>
+    <path stroke-width="26" d="M338 264c33 16 53 42 60 77M244 290c-20 37-48 66-83 88M281 292c6 40 24 75 55 105"/>
+    <path stroke-width="25" d="M370 187c-5-36 8-67 39-92M374 166c28-2 50-14 65-38M366 145c-21-10-34-28-39-53"/>
+    <path stroke-width="22" d="M385 197c20-5 37 0 50 15-18 13-38 16-59 9"/>
+    <path stroke-width="24" d="M120 311c-20 2-37-6-50-24 21-8 39-6 54 6"/>
+  </g>
+  <circle cx="407" cy="199" r="7" fill="#fff8ec"/>
+</svg>
