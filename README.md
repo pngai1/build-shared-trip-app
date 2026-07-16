@@ -30,7 +30,7 @@ node scripts/build-docs-demo.mjs
 - Flights, stays, restaurants, transport, and POIs in one chronological timeline
 - English, Simplified Chinese, Traditional Chinese, and Japanese UI and trip content
 - Date-flexible checklist with due items surfaced in each itinerary day
-- All-date live weather slider with expandable hourly details
+- Compact all-date weather slider with icon-opened hourly detail dialogs
 - Exact Google Maps place links when supplied, plus timeline-only placeholder plans
 - Nearby eat, see/go, and buy ideas for every day
 - Firebase anonymous synchronization without an account screen

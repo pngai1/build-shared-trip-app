@@ -63,6 +63,31 @@ for (const htmlFile of ["public/index.html", "public/resources.html"]) {
   if (/<\/script/i.test(match[1])) fail(`${htmlFile} embedded JSON can terminate its script element`);
 }
 
+const generatedIndex = fs.readFileSync(path.join(root, "public/index.html"), "utf8");
+const generatedApp = fs.readFileSync(path.join(root, "public/app.js"), "utf8");
+const generatedStyles = fs.readFileSync(path.join(root, "public/styles.css"), "utf8");
+const generatedLocales = [
+  "public/i18n.js",
+  "public/translations-zh-hans.js",
+  "public/translations-zh-hant.js",
+  "public/translations-ja.js"
+].map((file) => fs.readFileSync(path.join(root, file), "utf8")).join("\n");
+if (!generatedIndex.includes('id="weather-dialog"')) fail("public/index.html is missing the per-date weather details dialog");
+if (!generatedApp.includes("renderWeatherPeek(day, locationIds)")) fail("public/app.js is missing the aggregate per-date weather summary");
+if (!generatedApp.includes("Math.max(...available.map")) fail("public/app.js does not aggregate the daily maximum high/rain values");
+if (!generatedApp.includes("Math.min(...available.map")) fail("public/app.js does not aggregate the daily minimum low value");
+if (!generatedApp.includes('element("table", "weather-hours")')) fail("public/app.js weather details are missing a semantic hourly table");
+if (!generatedApp.includes('setAttribute("role", "tablist")')) fail("public/app.js weather details are missing per-location tabs");
+if (!generatedApp.includes("preserveScroll")) fail("public/app.js weather dialog does not preserve scroll during refreshes");
+if (!generatedApp.includes('setAttribute("aria-haspopup", "dialog")')) fail("public/app.js weather details trigger is missing dialog semantics");
+if (generatedLocales.includes("tripForecast")) fail("weather locale dictionaries still contain the removed tripForecast phrase");
+if (!generatedIndex.includes('class="todo-date-control"')) fail("public/index.html is missing the iOS-safe date control wrapper");
+if (!generatedStyles.includes('.todo-date-control input[type="date"]')) fail("public/styles.css is missing native date input containment");
+if (!generatedStyles.includes("contain: inline-size")) fail("public/styles.css is missing inline-size containment for iOS date controls");
+if (!generatedStyles.includes("-webkit-appearance: none")) fail("public/styles.css is missing the iOS intrinsic date-control reset");
+if (!generatedStyles.includes("::-webkit-date-and-time-value")) fail("public/styles.css is missing iOS date value containment");
+if (!generatedStyles.includes("align-items: stretch")) fail("public/styles.css does not keep weather date cards equal-height");
+
 const swPath = path.join(root, "public", "service-worker.js");
 if (fs.existsSync(swPath)) {
   const serviceWorker = fs.readFileSync(swPath, "utf8");

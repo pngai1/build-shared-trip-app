@@ -1,8 +1,8 @@
-import { firebaseConfig, tripDocumentPath } from "./firebase-config.js?v=v-73eda1b76745";
-import { getGooglePlaceLinks } from "./google-place-links.js?v=v-73eda1b76745";
-import { buildGoogleMapsUrl } from "./map-links.js?v=v-73eda1b76745";
-import { parseFullGoogleMapsPlaceUrl } from "./google-maps-place-url.js?v=v-73eda1b76745";
-import { computeReminders, remindersDueOnDate } from "./reminder-dates.js?v=v-73eda1b76745";
+import { firebaseConfig, tripDocumentPath } from "./firebase-config.js?v=v-af917aee95a7";
+import { getGooglePlaceLinks } from "./google-place-links.js?v=v-af917aee95a7";
+import { buildGoogleMapsUrl } from "./map-links.js?v=v-af917aee95a7";
+import { parseFullGoogleMapsPlaceUrl } from "./google-maps-place-url.js?v=v-af917aee95a7";
+import { computeReminders, remindersDueOnDate } from "./reminder-dates.js?v=v-af917aee95a7";
 import {
   getInitialLanguage,
   languageStorageKey,
@@ -10,7 +10,7 @@ import {
   localizeTrip,
   saveLanguage,
   ui
-} from "./i18n.js?v=v-73eda1b76745";
+} from "./i18n.js?v=v-af917aee95a7";
 import {
   DAY_FORECAST_LOCATIONS,
   fetchTripForecast,
@@ -18,9 +18,9 @@ import {
   localizeForecastLocation,
   weatherCodeIcon,
   weatherCodeKey
-} from "./weather-forecast.js?v=v-73eda1b76745";
-import { getFlightBookings } from "./flight-bookings.js?v=v-73eda1b76745";
-import { getDayArea, getDayGuide, getPlacePhoto } from "./daily-guide.js?v=v-73eda1b76745";
+} from "./weather-forecast.js?v=v-af917aee95a7";
+import { getFlightBookings } from "./flight-bookings.js?v=v-af917aee95a7";
+import { getDayArea, getDayGuide, getPlacePhoto } from "./daily-guide.js?v=v-af917aee95a7";
 
 const FIREBASE_SDK_VERSION = "12.15.0";
 const seedTrip = JSON.parse(document.getElementById("trip-data").textContent);
@@ -54,6 +54,10 @@ const els = {
   closePlanView: document.getElementById("close-plan-view"),
   planLanguage: document.getElementById("plan-language-select"),
   activeWeather: document.getElementById("active-weather"),
+  weatherDialog: document.getElementById("weather-dialog"),
+  weatherDialogTitle: document.getElementById("weather-dialog-title"),
+  weatherDialogArea: document.getElementById("weather-dialog-area"),
+  weatherDialogContent: document.getElementById("weather-dialog-content"),
   flights: document.getElementById("flight-list"),
   hotels: document.getElementById("hotel-list"),
   tips: document.getElementById("tips-list"),
@@ -102,8 +106,9 @@ let weatherForecastState = {
   error: null
 };
 let weatherRefreshPromise = null;
-let expandedWeatherKey = "";
-let weatherSliderScrollLeft = 0;
+let weatherDialogDayId = "";
+let weatherDialogLocationId = "";
+let weatherDialogReturnDayId = "";
 let currentMapPoints = [];
 let mapResizeTimer = null;
 const ITINERARY_SHEET_MODES = Object.freeze(["itinerary", "balanced", "map"]);
@@ -296,8 +301,7 @@ function bindReminderItems(container, computed, { editable = false } = {}) {
 }
 
 function renderEssentials() {
-  const priorSlider = els.activeWeather.querySelector(".weather-peeks");
-  if (priorSlider) weatherSliderScrollLeft = priorSlider.scrollLeft;
+  const previousScrollLeft = els.activeWeather.querySelector(".weather-date-strip")?.scrollLeft || 0;
   els.activeWeather.replaceChildren();
   if (!displayTrip.days.length) return;
 
@@ -305,10 +309,7 @@ function renderEssentials() {
   const headingCopy = element("div", "weather-compact__heading");
   const headingLabel = textElement("span", "eyebrow", ui(currentLanguage, "weatherForecast"));
   headingLabel.id = "weather-compact-title";
-  headingCopy.append(
-    headingLabel,
-    textElement("strong", "", ui(currentLanguage, "tripForecast"))
-  );
+  headingCopy.append(headingLabel);
   const weatherStatus = element("div", "weather-compact__status");
   const statusChip = weatherStatusChip();
   if (statusChip) weatherStatus.append(statusChip);
@@ -332,34 +333,45 @@ function renderEssentials() {
       currentLanguage,
       weatherForecastState.status === "loading" ? "loadingForecast" : "forecastUnavailable"
     )));
-  }
+  } else {
+    const strip = element("div", "weather-date-strip");
+    strip.setAttribute("role", "list");
+    strip.setAttribute("aria-label", ui(currentLanguage, "weatherDatesAria"));
+    strip.tabIndex = 0;
+    displayTrip.days.forEach((day, index) => {
+      const card = element("article", "weather-date-card");
+      card.setAttribute("role", "listitem");
+      const cardHeading = element("header", "weather-date-card__header");
+      const cardHeadingCopy = element("div", "weather-date-card__heading-copy");
+      const dayLabel = ui(currentLanguage, "dayShort", { number: index + 1 });
+      cardHeadingCopy.append(
+        textElement("span", "weather-date-card__day", day.date === todayInTripISO()
+          ? `${dayLabel} · ${ui(currentLanguage, "today")}`
+          : dayLabel),
+        textElement("strong", "", formatDate(day.date, { weekday: "short", month: "short", day: "numeric" })),
+        textElement("span", "weather-date-card__area", getDayArea(day.id, currentLanguage))
+      );
+      const detailsButton = weatherDetailsButton(day);
+      cardHeading.append(cardHeadingCopy, detailsButton);
+      card.append(cardHeading);
 
-  const peeks = element("div", "weather-peeks");
-  peeks.setAttribute("role", "region");
-  peeks.setAttribute("aria-label", ui(currentLanguage, "tripForecast"));
-  const availableEntries = new Map();
-  displayTrip.days.forEach((day) => {
-    const locations = DAY_FORECAST_LOCATIONS[day.id] || [];
-    (locations.length ? locations : [""]).forEach((locationId) => {
-      const peek = renderWeatherPeek(day, locationId);
-      availableEntries.set(peek.dataset.weatherKey, { day, locationId });
-      peeks.append(peek);
+      const peeks = element("div", "weather-peeks");
+      const locations = DAY_FORECAST_LOCATIONS[day.id] || [];
+      if (locations.length) peeks.append(renderWeatherPeek(day, locations));
+      if (!locations.length) peeks.append(textElement("p", "weather-compact__empty", ui(currentLanguage, "forecastNotAvailable")));
+      card.append(peeks);
+      strip.append(card);
     });
-  });
-  if (expandedWeatherKey && !availableEntries.has(expandedWeatherKey)) expandedWeatherKey = "";
-  peeks.addEventListener("scroll", () => {
-    weatherSliderScrollLeft = peeks.scrollLeft;
-  }, { passive: true });
-  els.activeWeather.append(peeks);
-  requestAnimationFrame(() => {
-    peeks.scrollLeft = weatherSliderScrollLeft;
-  });
-
-  if (expandedWeatherKey) {
-    const expandedEntry = availableEntries.get(expandedWeatherKey);
-    if (expandedEntry) els.activeWeather.append(renderWeatherDetails(expandedEntry.day, expandedEntry.locationId));
+    els.activeWeather.append(strip);
+    if (previousScrollLeft) {
+      strip.scrollLeft = previousScrollLeft;
+    } else {
+      const activeIndex = displayTrip.days.findIndex((day) => day.id === activeDayId);
+      const activeCard = activeIndex >= 0 ? strip.children[activeIndex] : null;
+      if (activeCard) strip.scrollLeft = Math.max(0, activeCard.offsetLeft - strip.offsetLeft);
+    }
   }
-
+  if (els.weatherDialog.open) renderWeatherDialog({ preserveScroll: true });
 }
 
 async function refreshWeatherForecast({ force = true } = {}) {
@@ -410,41 +422,42 @@ function weatherStatusChip() {
   return textElement("span", className, ui(currentLanguage, key));
 }
 
-function renderWeatherPeek(day, locationId) {
-  const daily = locationId ? dailyForecast(locationId, day.date) : null;
-  const weatherKey = JSON.stringify([day.id, locationId]);
-  const disclosure = element("button", "weather-peek weather-peek__summary");
-  disclosure.type = "button";
-  disclosure.dataset.weatherKey = weatherKey;
-  disclosure.setAttribute("aria-expanded", String(expandedWeatherKey === weatherKey));
-  disclosure.setAttribute("aria-controls", "weather-details");
+function renderWeatherPeek(day, locationIds) {
+  const available = locationIds
+    .map((locationId) => ({ locationId, daily: dailyForecast(locationId, day.date) }))
+    .filter((entry) => entry.daily);
+  const representative = available.reduce((wettest, entry) => (
+    !wettest || Number(entry.daily.precipitationProbability) > Number(wettest.daily.precipitationProbability)
+      ? entry
+      : wettest
+  ), null);
+  const daily = representative
+    ? {
+        weatherCode: representative.daily.weatherCode,
+        temperatureMax: Math.max(...available.map((entry) => Number(entry.daily.temperatureMax))),
+        temperatureMin: Math.min(...available.map((entry) => Number(entry.daily.temperatureMin))),
+        precipitationProbability: Math.max(...available.map((entry) => Number(entry.daily.precipitationProbability)))
+      }
+    : null;
+  const primaryLocationId = available[0]?.locationId || locationIds[0];
+  const extraLocationCount = Math.max(0, locationIds.length - 1);
+  const primaryLocationLabel = localizeForecastLocation(primaryLocationId, currentLanguage);
+  const peek = element("div", "weather-peek");
+  const summary = element("div", "weather-peek__summary");
   const identity = element("span", "weather-peek__identity");
-  const identityCopy = element("span", "weather-peek__identity-copy");
-  identityCopy.append(
-    textElement("span", "weather-peek__date", formatDate(day.date, { weekday: "short", month: "short", day: "numeric" })),
-    textElement("span", "weather-peek__place", locationId
-      ? localizeForecastLocation(locationId, currentLanguage)
-      : getDayArea(day.id, currentLanguage))
-  );
+  identity.title = locationIds.map((locationId) => localizeForecastLocation(locationId, currentLanguage)).join(" · ");
   identity.append(
     textElement("span", "weather-peek__icon", daily ? weatherCodeIcon(daily.weatherCode) : "☁"),
-    identityCopy
+    textElement("span", "weather-peek__place", extraLocationCount
+      ? `${primaryLocationLabel} +${extraLocationCount}`
+      : primaryLocationLabel)
   );
-  disclosure.append(identity);
+  summary.append(identity);
 
   if (!daily) {
-    const unavailableKey = weatherForecastState.status === "loading"
-      ? "loadingForecastShort"
-      : day.date < todayISO()
-        ? "forecastDatePassed"
-        : "forecastNotAvailable";
-    disclosure.append(
-      textElement("span", "weather-peek__unavailable", ui(currentLanguage, unavailableKey)),
-      textElement("span", "summary-chevron", "⌄")
-    );
-    disclosure.setAttribute("aria-label", `${formatDate(day.date, { dateStyle: "full" })}, ${ui(currentLanguage, unavailableKey)}`);
-    disclosure.addEventListener("click", () => toggleWeatherDetails(weatherKey));
-    return disclosure;
+    summary.append(textElement("span", "weather-peek__unavailable", ui(currentLanguage, day.date < todayISO() ? "forecastDatePassed" : "forecastNotAvailable")));
+    peek.append(summary);
+    return peek;
   }
 
   const temperature = element("span", "weather-peek__temperature");
@@ -453,73 +466,149 @@ function renderWeatherPeek(day, locationId) {
     document.createTextNode(` / ${formatNumber(daily.temperatureMin, 0)}°C`)
   );
   const rain = textElement("span", "weather-peek__rain", `💧 ${formatNumber(daily.precipitationProbability, 0)}%`);
-  disclosure.append(temperature, rain, textElement("span", "summary-chevron", "⌄"));
-  disclosure.setAttribute("aria-label", [
-    formatDate(day.date, { dateStyle: "full" }),
-    locationId ? localizeForecastLocation(locationId, currentLanguage) : getDayArea(day.id, currentLanguage),
-    `${formatNumber(daily.temperatureMax, 0)} / ${formatNumber(daily.temperatureMin, 0)}°C`,
-    `${ui(currentLanguage, "rainChance")} ${formatNumber(daily.precipitationProbability, 0)}%`
-  ].join(", "));
-  disclosure.addEventListener("click", () => toggleWeatherDetails(weatherKey));
-  return disclosure;
+  summary.append(temperature, rain);
+  peek.append(summary);
+  return peek;
 }
 
-function toggleWeatherDetails(weatherKey) {
-  expandedWeatherKey = expandedWeatherKey === weatherKey ? "" : weatherKey;
-  renderEssentials();
-}
-
-function renderWeatherDetails(day, locationId) {
-  const daily = locationId ? dailyForecast(locationId, day.date) : null;
-  const popover = element("section", "weather-popover");
-  popover.id = "weather-details";
-  popover.setAttribute("aria-label", ui(currentLanguage, "forecastDetailsFor", {
-    date: formatDate(day.date, { dateStyle: "full" })
+function weatherDetailsButton(day) {
+  const button = element("button", "weather-detail-trigger");
+  button.type = "button";
+  button.setAttribute("aria-haspopup", "dialog");
+  button.dataset.weatherDayId = day.id;
+  button.setAttribute("aria-label", ui(currentLanguage, "openWeatherDetails", {
+    date: formatDate(day.date, { weekday: "long", month: "long", day: "numeric" })
   }));
-  const detailHeading = element("div", "weather-popover__heading");
-  detailHeading.append(
-    textElement("strong", "", formatDate(day.date, { dateStyle: "full" })),
-    textElement("span", "", locationId
-      ? localizeForecastLocation(locationId, currentLanguage)
-      : getDayArea(day.id, currentLanguage))
+  const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  icon.setAttribute("viewBox", "0 0 24 24");
+  icon.setAttribute("aria-hidden", "true");
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path.setAttribute("d", "M9 6h10M9 12h10M9 18h10M5 6h.01M5 12h.01M5 18h.01");
+  path.setAttribute("fill", "none");
+  path.setAttribute("stroke", "currentColor");
+  path.setAttribute("stroke-width", "2");
+  path.setAttribute("stroke-linecap", "round");
+  icon.append(path);
+  button.append(icon);
+  button.addEventListener("click", () => openWeatherDialog(day.id));
+  return button;
+}
+
+function openWeatherDialog(dayId) {
+  weatherDialogDayId = dayId;
+  weatherDialogReturnDayId = dayId;
+  weatherDialogLocationId = (DAY_FORECAST_LOCATIONS[dayId] || [])[0] || "";
+  renderWeatherDialog();
+  els.weatherDialogContent.scrollTop = 0;
+  if (!els.weatherDialog.open) els.weatherDialog.showModal();
+}
+
+function closeWeatherDialog() {
+  if (els.weatherDialog.open) els.weatherDialog.close();
+}
+
+function renderWeatherDialog({ preserveScroll = false } = {}) {
+  const day = displayTrip.days.find((candidate) => candidate.id === weatherDialogDayId);
+  if (!day) {
+    closeWeatherDialog();
+    return;
+  }
+  const previousScrollTop = preserveScroll ? els.weatherDialogContent.scrollTop : 0;
+  els.weatherDialogTitle.textContent = formatDate(day.date, {
+    weekday: "long",
+    month: "long",
+    day: "numeric"
+  });
+  els.weatherDialogArea.textContent = getDayArea(day.id, currentLanguage);
+  els.weatherDialogContent.replaceChildren();
+  const locations = DAY_FORECAST_LOCATIONS[day.id] || [];
+  if (!locations.length) {
+    els.weatherDialogContent.append(textElement("p", "weather-dialog__empty", ui(currentLanguage, "forecastNotAvailable")));
+    return;
+  }
+  if (!locations.includes(weatherDialogLocationId)) weatherDialogLocationId = locations[0];
+  if (locations.length > 1) {
+    const locationTabs = element("div", "weather-location-tabs");
+    locationTabs.setAttribute("role", "tablist");
+    locationTabs.setAttribute("aria-label", ui(currentLanguage, "weatherLocations"));
+    locations.forEach((locationId) => {
+      const tab = textElement("button", "weather-location-tab", localizeForecastLocation(locationId, currentLanguage));
+      tab.type = "button";
+      tab.setAttribute("role", "tab");
+      tab.setAttribute("aria-selected", String(locationId === weatherDialogLocationId));
+      tab.dataset.weatherLocationId = locationId;
+      tab.addEventListener("click", () => {
+        weatherDialogLocationId = locationId;
+        renderWeatherDialog();
+        requestAnimationFrame(() => {
+          [...els.weatherDialogContent.querySelectorAll(".weather-location-tab")]
+            .find((candidate) => candidate.dataset.weatherLocationId === locationId)
+            ?.focus({ preventScroll: true });
+        });
+      });
+      locationTabs.append(tab);
+    });
+    els.weatherDialogContent.append(locationTabs);
+  }
+  els.weatherDialogContent.append(renderWeatherLocationDetails(day, weatherDialogLocationId));
+  if (preserveScroll) els.weatherDialogContent.scrollTop = previousScrollTop;
+}
+
+function renderWeatherLocationDetails(day, locationId) {
+  const section = element("section", "weather-detail-location");
+  const daily = dailyForecast(locationId, day.date);
+  const locationHeading = element("div", "weather-detail-location__heading");
+  locationHeading.append(
+    textElement("span", "weather-detail-location__icon", daily ? weatherCodeIcon(daily.weatherCode) : "☁"),
+    textElement("h3", "", localizeForecastLocation(locationId, currentLanguage))
   );
-  popover.append(detailHeading);
+  section.append(locationHeading);
 
   if (!daily) {
-    popover.append(textElement("p", "weather-compact__empty", ui(
-      currentLanguage,
-      day.date < todayISO() ? "forecastDatePassed" : "forecastNotAvailable"
-    )));
-    return popover;
+    section.append(textElement("p", "weather-dialog__empty", ui(currentLanguage, day.date < todayISO() ? "forecastDatePassed" : "forecastNotAvailable")));
+    return section;
   }
 
-  const overview = element("div", "weather-popover__overview");
+  const overview = element("div", "weather-detail__overview");
   overview.append(
     textElement("strong", "", ui(currentLanguage, weatherCodeKey(daily.weatherCode))),
-    textElement("span", "", `${formatNumber(daily.precipitationSum, 1)} mm · ${ui(currentLanguage, "uvIndex")} ${formatNumber(daily.uvIndexMax, 1)}`)
+    textElement("span", "", `${formatNumber(daily.temperatureMax, 0)}° / ${formatNumber(daily.temperatureMin, 0)}°C`),
+    textElement("span", "", `${ui(currentLanguage, "rainChance")} ${formatNumber(daily.precipitationProbability, 0)}% · ${formatNumber(daily.precipitationSum, 1)} mm`),
+    textElement("span", "", `${ui(currentLanguage, "uvIndex")} ${formatNumber(daily.uvIndexMax, 1)}`)
   );
-  popover.append(overview);
+  section.append(overview);
 
   const samples = hourlyForecast(locationId, day.date).filter((point) => [6, 9, 12, 15, 18, 21].includes(Number(point.time.slice(0, 2))));
   if (samples.length) {
-    const table = element("div", "weather-hours");
-    const header = element("div", "weather-hours__row weather-hours__row--header");
-    [ui(currentLanguage, "time"), "°C", ui(currentLanguage, "rainChance"), "UV"].forEach((label) => header.append(textElement("span", "", label)));
-    table.append(header);
-    samples.forEach((point) => {
-      const row = element("div", "weather-hours__row");
-      row.append(
-        textElement("span", "", point.time),
-        textElement("span", "", `${formatNumber(point.temperature, 0)}°`),
-        textElement("span", "", `${formatNumber(point.precipitationProbability, 0)}%`),
-        textElement("span", "", formatNumber(point.uvIndex, 1))
-      );
-      table.append(row);
+    const table = element("table", "weather-hours");
+    const caption = textElement("caption", "sr-only", ui(currentLanguage, "hourlyWeatherFor", {
+      location: localizeForecastLocation(locationId, currentLanguage),
+      date: formatDate(day.date, { weekday: "long", month: "long", day: "numeric" })
+    }));
+    const head = element("thead");
+    const header = element("tr", "weather-hours__row weather-hours__row--header");
+    [ui(currentLanguage, "time"), "°C", ui(currentLanguage, "rainChance"), "UV"].forEach((label) => {
+      const cell = textElement("th", "", label);
+      cell.scope = "col";
+      header.append(cell);
     });
-    popover.append(table);
+    head.append(header);
+    const body = element("tbody");
+    samples.forEach((point) => {
+      const row = element("tr", "weather-hours__row");
+      row.append(
+        textElement("td", "", point.time),
+        textElement("td", "", `${formatNumber(point.temperature, 0)}°`),
+        textElement("td", "", `${formatNumber(point.precipitationProbability, 0)}%`),
+        textElement("td", "", formatNumber(point.uvIndex, 1))
+      );
+      body.append(row);
+    });
+    table.append(caption, head, body);
+    section.append(table);
   }
-  popover.append(textElement("p", "weather-popover__meta", `${ui(currentLanguage, "wind")} ${formatNumber(daily.windSpeedMax, 0)} km/h · ${ui(currentLanguage, "sunriseSunset")} ${formatForecastTime(daily.sunrise)}–${formatForecastTime(daily.sunset)}`));
-  return popover;
+  section.append(textElement("p", "weather-detail__meta", `${ui(currentLanguage, "wind")} ${formatNumber(daily.windSpeedMax, 0)} km/h · ${ui(currentLanguage, "sunriseSunset")} ${formatForecastTime(daily.sunrise)}–${formatForecastTime(daily.sunset)}`));
+  return section;
 }
 
 function dailyForecast(locationId, date) {
@@ -1780,6 +1869,9 @@ function setupInteractionHandlers() {
   document.querySelectorAll("[data-close-todo-dialog]").forEach((button) => {
     button.addEventListener("click", () => els.todoDialog.close());
   });
+  document.querySelectorAll("[data-close-weather-dialog]").forEach((button) => {
+    button.addEventListener("click", closeWeatherDialog);
+  });
   els.addReminder.addEventListener("click", () => openTodoDialog());
   const googleMapsInput = els.form.elements.googleMapsUrl;
   googleMapsInput.addEventListener("input", () => updateGoogleMapsLinkState());
@@ -1794,6 +1886,20 @@ function setupInteractionHandlers() {
   els.deleteReminder.addEventListener("click", handleTodoDelete);
   els.todoDialog.addEventListener("click", (event) => {
     if (event.target === els.todoDialog) els.todoDialog.close();
+  });
+  els.weatherDialog.addEventListener("click", (event) => {
+    if (event.target === els.weatherDialog) closeWeatherDialog();
+  });
+  els.weatherDialog.addEventListener("close", () => {
+    const returnDayId = weatherDialogReturnDayId;
+    weatherDialogDayId = "";
+    weatherDialogLocationId = "";
+    weatherDialogReturnDayId = "";
+    requestAnimationFrame(() => {
+      [...document.querySelectorAll(".weather-detail-trigger")]
+        .find((candidate) => candidate.dataset.weatherDayId === returnDayId)
+        ?.focus({ preventScroll: true });
+    });
   });
 }
 
@@ -2330,6 +2436,7 @@ function applyStaticTranslations() {
   if (els.todoDialog.open) {
     els.todoDialogTitle.textContent = ui(currentLanguage, els.todoForm.elements.reminderId.value ? "editTodo" : "addTodo");
   }
+  if (els.weatherDialog.open) renderWeatherDialog();
   if (!els.toast.hidden && toastKey) {
     els.toast.textContent = ui(currentLanguage, toastKey, toastVariables);
   }

@@ -200,6 +200,20 @@
     </div>
   </footer>
 
+  <dialog class="weather-dialog" id="weather-dialog" aria-labelledby="weather-dialog-title">
+    <div class="weather-dialog__sheet">
+      <div class="dialog-header weather-dialog__header">
+        <div class="weather-dialog__heading">
+          <span class="eyebrow" data-i18n="weatherForecast">Weather forecast</span>
+          <h2 id="weather-dialog-title">Weather details</h2>
+          <p id="weather-dialog-area"></p>
+        </div>
+        <button class="dialog-close" type="button" data-close-weather-dialog aria-label="Close" data-i18n-aria-label="close">×</button>
+      </div>
+      <div class="weather-dialog__content" id="weather-dialog-content"></div>
+    </div>
+  </dialog>
+
   <dialog class="item-dialog" id="item-dialog" aria-labelledby="dialog-title">
     <form class="item-form" id="item-form" method="dialog">
       <div class="dialog-header">
@@ -313,7 +327,9 @@
         </label>
         <label class="form-field">
           <span data-i18n="dueDate">Due date</span>
-          <input name="dueDate" type="date" required>
+          <span class="todo-date-control">
+            <input name="dueDate" type="date" required>
+          </span>
         </label>
         <p class="form-hint" data-i18n="todoDateHint">Choose any date.</p>
       </div>
