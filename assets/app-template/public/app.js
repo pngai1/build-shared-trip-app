@@ -2,6 +2,7 @@ import { firebaseConfig, tripDocumentPath } from "./firebase-config.js?v=__CACHE
 import { getGooglePlaceLinks } from "./google-place-links.js?v=__CACHE_VERSION__";
 import { buildGoogleMapsUrl } from "./map-links.js?v=__CACHE_VERSION__";
 import { parseFullGoogleMapsPlaceUrl } from "./google-maps-place-url.js?v=__CACHE_VERSION__";
+import { computeReminders, remindersDueOnDate } from "./reminder-dates.js?v=__CACHE_VERSION__";
 import {
   getInitialLanguage,
   languageStorageKey,
@@ -101,6 +102,8 @@ let weatherForecastState = {
   error: null
 };
 let weatherRefreshPromise = null;
+let expandedWeatherKey = "";
+let weatherSliderScrollLeft = 0;
 let currentMapPoints = [];
 let mapResizeTimer = null;
 const ITINERARY_SHEET_MODES = Object.freeze(["itinerary", "balanced", "map"]);
@@ -244,16 +247,20 @@ function applyTripTheme(theme = {}) {
 function renderReminders() {
   const computed = computeReminders(displayTrip.startDate, displayTrip.reminders);
   els.reminders.innerHTML = renderChecklistHTML(computed, {
-    formatBefore: (date) => ui(currentLanguage, "beforeDeadline", {
+    formatDue: (date) => ui(currentLanguage, "dueOnDate", {
       date: formatDate(date, { year: "numeric", month: "long", day: "numeric" })
-    }),
-    formatDaysAhead: (count) => currentLanguage === "en"
-      ? `${count} ${count === 1 ? "day" : "days"} ahead`
-      : ui(currentLanguage, "daysAhead", { count })
+    })
   });
 
+  bindReminderItems(els.reminders, computed, { editable: true });
+
+  const openCount = currentTrip.reminders.filter((item) => !item.done).length;
+  els.reminderCount.textContent = ui(currentLanguage, "openCount", { count: openCount });
+}
+
+function bindReminderItems(container, computed, { editable = false } = {}) {
   const ordered = computed.map((item) => displayTrip.reminders.find((reminder) => reminder.id === item.id));
-  els.reminders.querySelectorAll("li").forEach((item, index) => {
+  container.querySelectorAll("li").forEach((item, index) => {
     const displayReminder = ordered[index];
     const reminder = currentTrip.reminders.find((candidate) => candidate.id === displayReminder?.id);
     if (!reminder || !displayReminder) return;
@@ -272,32 +279,27 @@ function renderReminders() {
       }, desiredState ? "markedComplete" : "reopenedReminder");
       if (!saved) input.checked = reminder.done;
     });
-    const edit = textElement("button", "todo-edit", ui(currentLanguage, "edit"));
-    edit.type = "button";
-    edit.setAttribute("aria-label", `${ui(currentLanguage, "editTodo")}: ${displayReminder.item}`);
-    edit.addEventListener("click", (event) => {
-      event.stopPropagation();
-      openTodoDialog(reminder.id);
-    });
-    item.append(edit);
+    if (editable) {
+      const edit = textElement("button", "todo-edit", ui(currentLanguage, "edit"));
+      edit.type = "button";
+      edit.setAttribute("aria-label", `${ui(currentLanguage, "editTodo")}: ${displayReminder.item}`);
+      edit.addEventListener("click", (event) => {
+        event.stopPropagation();
+        openTodoDialog(reminder.id);
+      });
+      item.append(edit);
+    }
     item.addEventListener("click", (event) => {
       if (event.target !== input && !event.target.closest("button")) input.click();
     });
   });
-
-  const openCount = currentTrip.reminders.filter((item) => !item.done).length;
-  els.reminderCount.textContent = ui(currentLanguage, "openCount", { count: openCount });
 }
 
 function renderEssentials() {
-  const openWeatherKeys = new Set(
-    [...els.activeWeather.querySelectorAll(".weather-peek[open]")]
-      .map((peek) => peek.dataset.weatherKey)
-      .filter(Boolean)
-  );
-  const day = displayTrip.days.find((candidate) => candidate.id === activeDayId) || displayTrip.days[0];
+  const priorSlider = els.activeWeather.querySelector(".weather-peeks");
+  if (priorSlider) weatherSliderScrollLeft = priorSlider.scrollLeft;
   els.activeWeather.replaceChildren();
-  if (!day) return;
+  if (!displayTrip.days.length) return;
 
   const heading = element("div", "weather-compact__header");
   const headingCopy = element("div", "weather-compact__heading");
@@ -305,7 +307,7 @@ function renderEssentials() {
   headingLabel.id = "weather-compact-title";
   headingCopy.append(
     headingLabel,
-    textElement("strong", "", formatDate(day.date, { weekday: "short", month: "short", day: "numeric" }))
+    textElement("strong", "", ui(currentLanguage, "tripForecast"))
   );
   const weatherStatus = element("div", "weather-compact__status");
   const statusChip = weatherStatusChip();
@@ -330,16 +332,32 @@ function renderEssentials() {
       currentLanguage,
       weatherForecastState.status === "loading" ? "loadingForecast" : "forecastUnavailable"
     )));
-  } else {
-    const peeks = element("div", "weather-peeks");
+  }
+
+  const peeks = element("div", "weather-peeks");
+  peeks.setAttribute("role", "region");
+  peeks.setAttribute("aria-label", ui(currentLanguage, "tripForecast"));
+  const availableEntries = new Map();
+  displayTrip.days.forEach((day) => {
     const locations = DAY_FORECAST_LOCATIONS[day.id] || [];
-    locations.forEach((locationId) => {
+    (locations.length ? locations : [""]).forEach((locationId) => {
       const peek = renderWeatherPeek(day, locationId);
-      if (openWeatherKeys.has(peek.dataset.weatherKey)) peek.open = true;
+      availableEntries.set(peek.dataset.weatherKey, { day, locationId });
       peeks.append(peek);
     });
-    if (!locations.length) peeks.append(textElement("p", "weather-compact__empty", ui(currentLanguage, "forecastNotAvailable")));
-    els.activeWeather.append(peeks);
+  });
+  if (expandedWeatherKey && !availableEntries.has(expandedWeatherKey)) expandedWeatherKey = "";
+  peeks.addEventListener("scroll", () => {
+    weatherSliderScrollLeft = peeks.scrollLeft;
+  }, { passive: true });
+  els.activeWeather.append(peeks);
+  requestAnimationFrame(() => {
+    peeks.scrollLeft = weatherSliderScrollLeft;
+  });
+
+  if (expandedWeatherKey) {
+    const expandedEntry = availableEntries.get(expandedWeatherKey);
+    if (expandedEntry) els.activeWeather.append(renderWeatherDetails(expandedEntry.day, expandedEntry.locationId));
   }
 
 }
@@ -393,21 +411,39 @@ function weatherStatusChip() {
 }
 
 function renderWeatherPeek(day, locationId) {
-  const daily = dailyForecast(locationId, day.date);
-  const disclosure = element("details", "weather-peek");
-  disclosure.name = "active-day-weather";
-  disclosure.dataset.weatherKey = `${day.id}:${locationId}`;
-  const summary = element("summary", "weather-peek__summary");
+  const daily = locationId ? dailyForecast(locationId, day.date) : null;
+  const weatherKey = JSON.stringify([day.id, locationId]);
+  const disclosure = element("button", "weather-peek weather-peek__summary");
+  disclosure.type = "button";
+  disclosure.dataset.weatherKey = weatherKey;
+  disclosure.setAttribute("aria-expanded", String(expandedWeatherKey === weatherKey));
+  disclosure.setAttribute("aria-controls", "weather-details");
   const identity = element("span", "weather-peek__identity");
+  const identityCopy = element("span", "weather-peek__identity-copy");
+  identityCopy.append(
+    textElement("span", "weather-peek__date", formatDate(day.date, { weekday: "short", month: "short", day: "numeric" })),
+    textElement("span", "weather-peek__place", locationId
+      ? localizeForecastLocation(locationId, currentLanguage)
+      : getDayArea(day.id, currentLanguage))
+  );
   identity.append(
     textElement("span", "weather-peek__icon", daily ? weatherCodeIcon(daily.weatherCode) : "☁"),
-    textElement("span", "weather-peek__place", localizeForecastLocation(locationId, currentLanguage))
+    identityCopy
   );
-  summary.append(identity);
+  disclosure.append(identity);
 
   if (!daily) {
-    summary.append(textElement("span", "weather-peek__unavailable", ui(currentLanguage, day.date < todayISO() ? "forecastDatePassed" : "forecastNotAvailable")));
-    disclosure.append(summary);
+    const unavailableKey = weatherForecastState.status === "loading"
+      ? "loadingForecastShort"
+      : day.date < todayISO()
+        ? "forecastDatePassed"
+        : "forecastNotAvailable";
+    disclosure.append(
+      textElement("span", "weather-peek__unavailable", ui(currentLanguage, unavailableKey)),
+      textElement("span", "summary-chevron", "⌄")
+    );
+    disclosure.setAttribute("aria-label", `${formatDate(day.date, { dateStyle: "full" })}, ${ui(currentLanguage, unavailableKey)}`);
+    disclosure.addEventListener("click", () => toggleWeatherDetails(weatherKey));
     return disclosure;
   }
 
@@ -417,9 +453,46 @@ function renderWeatherPeek(day, locationId) {
     document.createTextNode(` / ${formatNumber(daily.temperatureMin, 0)}°C`)
   );
   const rain = textElement("span", "weather-peek__rain", `💧 ${formatNumber(daily.precipitationProbability, 0)}%`);
-  summary.append(temperature, rain, textElement("span", "summary-chevron", "⌄"));
+  disclosure.append(temperature, rain, textElement("span", "summary-chevron", "⌄"));
+  disclosure.setAttribute("aria-label", [
+    formatDate(day.date, { dateStyle: "full" }),
+    locationId ? localizeForecastLocation(locationId, currentLanguage) : getDayArea(day.id, currentLanguage),
+    `${formatNumber(daily.temperatureMax, 0)} / ${formatNumber(daily.temperatureMin, 0)}°C`,
+    `${ui(currentLanguage, "rainChance")} ${formatNumber(daily.precipitationProbability, 0)}%`
+  ].join(", "));
+  disclosure.addEventListener("click", () => toggleWeatherDetails(weatherKey));
+  return disclosure;
+}
 
-  const popover = element("div", "weather-popover");
+function toggleWeatherDetails(weatherKey) {
+  expandedWeatherKey = expandedWeatherKey === weatherKey ? "" : weatherKey;
+  renderEssentials();
+}
+
+function renderWeatherDetails(day, locationId) {
+  const daily = locationId ? dailyForecast(locationId, day.date) : null;
+  const popover = element("section", "weather-popover");
+  popover.id = "weather-details";
+  popover.setAttribute("aria-label", ui(currentLanguage, "forecastDetailsFor", {
+    date: formatDate(day.date, { dateStyle: "full" })
+  }));
+  const detailHeading = element("div", "weather-popover__heading");
+  detailHeading.append(
+    textElement("strong", "", formatDate(day.date, { dateStyle: "full" })),
+    textElement("span", "", locationId
+      ? localizeForecastLocation(locationId, currentLanguage)
+      : getDayArea(day.id, currentLanguage))
+  );
+  popover.append(detailHeading);
+
+  if (!daily) {
+    popover.append(textElement("p", "weather-compact__empty", ui(
+      currentLanguage,
+      day.date < todayISO() ? "forecastDatePassed" : "forecastNotAvailable"
+    )));
+    return popover;
+  }
+
   const overview = element("div", "weather-popover__overview");
   overview.append(
     textElement("strong", "", ui(currentLanguage, weatherCodeKey(daily.weatherCode))),
@@ -446,8 +519,7 @@ function renderWeatherPeek(day, locationId) {
     popover.append(table);
   }
   popover.append(textElement("p", "weather-popover__meta", `${ui(currentLanguage, "wind")} ${formatNumber(daily.windSpeedMax, 0)} km/h · ${ui(currentLanguage, "sunriseSunset")} ${formatForecastTime(daily.sunrise)}–${formatForecastTime(daily.sunset)}`));
-  disclosure.append(summary, popover);
-  return disclosure;
+  return popover;
 }
 
 function dailyForecast(locationId, date) {
@@ -545,13 +617,14 @@ function renderTravelLogistics() {
         textElement("p", "compact-card__meta", hotel.priceRange || ""),
         textElement("p", "muted", hotel.note || "")
       );
-      item.append(googleMapsAnchor({
+      const hotelMapLink = googleMapsAnchor({
         googleMapsKey: `hotel:${canonicalHotel.name}`,
         name: hotel.name,
         lat: matchingSlot?.lat,
         lng: matchingSlot?.lng,
         address: matchingSlot?.address || canonicalHotel.name
-      }));
+      });
+      if (hotelMapLink) item.append(hotelMapLink);
       hotelCards.append(item);
     });
     els.hotels.append(group);
@@ -819,6 +892,9 @@ function renderDay(day, index) {
 
   if (day.summary) section.append(textElement("p", "day-summary", day.summary));
 
+  const dayReminders = renderDayReminders(day);
+  if (dayReminders) section.append(dayReminders);
+
   const timeline = element("div", "timeline");
   const timelineSlots = orderedDaySlots(day);
   timelineSlots.forEach((slot, slotIndex) => timeline.append(renderSlot(day, slot, slotIndex)));
@@ -855,13 +931,14 @@ function renderDay(day, index) {
       );
       const dishes = (meal.dishes || []).map((dish) => `${dish.name}${dish.price ? ` ${dish.price}` : ""}`).join(" · ");
       if (dishes) line.append(textElement("span", "muted", ` — ${dishes}`));
-      line.append(document.createTextNode(" "), googleMapsAnchor({
+      const diningMapLink = googleMapsAnchor({
         googleMapsKey: `dining:${canonicalMeal.place}`,
         name: meal.place,
         lat: matchingSlot?.lat,
         lng: matchingSlot?.lng,
         address: matchingSlot?.address || canonicalMeal.place
-      }));
+      });
+      if (diningMapLink) line.append(document.createTextNode(" "), diningMapLink);
       dining.append(line);
     });
     section.append(dining);
@@ -873,6 +950,32 @@ function renderDay(day, index) {
   const guide = renderDayGuide(day);
   if (guide) section.append(guide);
   return section;
+}
+
+function renderDayReminders(day) {
+  const computed = remindersDueOnDate(
+    computeReminders(displayTrip.startDate, displayTrip.reminders),
+    day.date
+  );
+  if (!computed.length) return null;
+
+  const panel = element("section", "day-todos");
+  const heading = element("div", "day-todos__heading");
+  heading.append(
+    textElement("h3", "", ui(currentLanguage, "todosDueOnDate", {
+      date: formatDate(day.date, { month: "short", day: "numeric" })
+    })),
+    textElement("span", "count-chip", String(computed.length))
+  );
+  const list = element("div", "day-todos__list");
+  list.innerHTML = renderChecklistHTML(computed, {
+    formatDue: (date) => ui(currentLanguage, "dueOnDate", {
+      date: formatDate(date, { month: "short", day: "numeric" })
+    })
+  });
+  bindReminderItems(list, computed);
+  panel.append(heading, list);
+  return panel;
 }
 
 function renderSlot(day, slot, slotIndex) {
@@ -931,7 +1034,8 @@ function renderSlot(day, slot, slotIndex) {
   const bookingDetails = renderTimelineBookingDetails(flightBooking, hotelBooking);
   if (bookingDetails) body.append(bookingDetails);
   const actions = element("div", "timeline-card__actions");
-  actions.append(googleMapsAnchor(slot));
+  const mapsAction = googleMapsAnchor(slot, { allowSearchFallback: false });
+  if (mapsAction) actions.append(mapsAction);
   if (!slot.syntheticBooking) {
     const edit = textElement("button", "icon-button", ui(currentLanguage, "edit"));
     edit.type = "button";
@@ -939,7 +1043,7 @@ function renderSlot(day, slot, slotIndex) {
     edit.addEventListener("click", () => openItemDialog(day.id, slot.id));
     actions.append(edit);
   }
-  body.append(actions);
+  if (actions.childNodes.length) body.append(actions);
   if (slot.needsBooking && !slot.booked) {
     const reminder = element("div", "booking-reminder");
     const leadDays = Number(slot.leadDays);
@@ -1467,7 +1571,7 @@ function renderMap(attempt = 0) {
       name: timelineSlotName(slot),
       time: slot.time,
       routeGroup: slot.routeGroup || "shared-route",
-      googleMapsUrl: googleMapsUrl(slot)
+      googleMapsUrl: googleMapsUrl(slot, { allowSearchFallback: false })
     }))
     .filter((point) => Number.isFinite(point.lat) && Number.isFinite(point.lng));
   currentMapPoints = points;
@@ -1756,14 +1860,13 @@ function openTodoDialog(reminderId = "") {
   els.todoForm.elements.reminderId.value = reminderId;
   els.todoDialogTitle.textContent = ui(currentLanguage, reminder ? "editTodo" : "addTodo");
   els.deleteReminder.hidden = !reminder;
-  els.todoForm.elements.dueDate.max = currentTrip.startDate;
+  els.todoForm.elements.dueDate.removeAttribute("max");
 
   if (reminder) {
     itemInput.value = displayReminder?.item || reminder.item || "";
     els.todoForm.elements.dueDate.value = reminderDeadline(reminder);
   } else {
-    const today = todayISO();
-    els.todoForm.elements.dueDate.value = today <= currentTrip.startDate ? today : currentTrip.startDate;
+    els.todoForm.elements.dueDate.value = todayISO();
   }
 
   els.todoDialog.showModal();
@@ -1776,7 +1879,7 @@ async function handleTodoSubmit(event) {
   const reminderId = String(data.get("reminderId") || "");
   const submittedItem = String(data.get("item") || "").trim();
   const dueDate = String(data.get("dueDate") || "");
-  if (!submittedItem || !/^\d{4}-\d{2}-\d{2}$/.test(dueDate) || dueDate > currentTrip.startDate) return;
+  if (!submittedItem || !/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) return;
   const canonicalExisting = currentTrip.reminders.find((candidate) => candidate.id === reminderId);
   const displayExisting = displayTrip.reminders.find((candidate) => candidate.id === reminderId);
   const item = canonicalExisting && submittedItem === displayExisting?.item
@@ -1789,11 +1892,14 @@ async function handleTodoSubmit(event) {
       id: reminderId || uid("reminder"),
       item,
       dueDate,
-      leadDays: leadDaysFromDeadline(trip.startDate, dueDate),
       done: existing?.done || false
     };
-    if (existing) Object.assign(existing, next);
-    else trip.reminders.push(next);
+    if (existing) {
+      Object.assign(existing, next);
+      delete existing.leadDays;
+    } else {
+      trip.reminders.push(next);
+    }
   }, reminderId ? "todoUpdated" : "todoAdded");
   if (saved) els.todoDialog.close();
 }
@@ -1813,12 +1919,6 @@ function reminderDeadline(reminder) {
   const deadline = new Date(`${currentTrip.startDate}T00:00:00Z`);
   deadline.setUTCDate(deadline.getUTCDate() - Number(reminder?.leadDays || 0));
   return deadline.toISOString().slice(0, 10);
-}
-
-function leadDaysFromDeadline(startDate, dueDate) {
-  const start = new Date(`${startDate}T00:00:00Z`);
-  const due = new Date(`${dueDate}T00:00:00Z`);
-  return Math.min(365, Math.max(0, Math.round((start - due) / 86400000)));
 }
 
 function openItemDialog(dayId, slotId = "") {
@@ -1844,7 +1944,8 @@ function openItemDialog(dayId, slotId = "") {
     && Number.isFinite(slot.lat)
     && Number.isFinite(slot.lng)
   );
-  googleMapsInput.required = !canPreserveLegacyLocation;
+  googleMapsInput.required = false;
+  googleMapsInput.dataset.preserveLegacyLocation = String(canPreserveLegacyLocation);
   googleMapsInput.value = storedMapsPlace.ok ? storedMapsPlace.url : "";
 
   if (slot) {
@@ -1941,9 +2042,16 @@ async function handleItemSubmit(event) {
     .find((slot) => slot.id === slotId);
   const nextSlotId = slotId || uid("slot");
   const googleMapsInput = els.form.elements.googleMapsUrl;
+  const submittedMapsUrl = googleMapsInput.value.trim();
   const parsedMapsPlace = updateGoogleMapsLinkState({ showError: true, report: true });
-  const preservingLegacyLocation = Boolean(existingSlot && !googleMapsInput.required && !googleMapsInput.value.trim());
-  if (!parsedMapsPlace.ok && !preservingLegacyLocation) return;
+  const preservingLegacyLocation = Boolean(
+    existingSlot
+    && !submittedMapsUrl
+    && googleMapsInput.dataset.preserveLegacyLocation === "true"
+  );
+  if (submittedMapsUrl && !parsedMapsPlace.ok) return;
+  const existingMapsPlace = parseFullGoogleMapsPlaceUrl(existingSlot?.googleMapsUrl || existingSlot?.mapsUrl || "");
+  const clearingMappedLocation = Boolean(existingSlot && !submittedMapsUrl && existingMapsPlace.ok);
 
   const slotPatch = {
     period: data.get("period"),
@@ -1970,8 +2078,18 @@ async function handleItemSubmit(event) {
     const day = trip.days.find((candidate) => candidate.id === dayId);
     if (!day) return;
     const existingIndex = day.slots.findIndex((candidate) => candidate.id === slotId);
-    if (existingIndex >= 0) day.slots[existingIndex] = { ...day.slots[existingIndex], ...slotPatch };
-    else day.slots.push({ id: nextSlotId, ...slotPatch });
+    if (existingIndex >= 0) {
+      const next = { ...day.slots[existingIndex], ...slotPatch };
+      if (clearingMappedLocation && !preservingLegacyLocation) {
+        [
+          "googleMapsUrl", "mapsUrl", "googleMapsPlaceName", "googleMapsPlaceLabel",
+          "googleMapsFeatureId", "address", "lat", "lng", "approximateLocation"
+        ].forEach((key) => delete next[key]);
+      }
+      day.slots[existingIndex] = next;
+    } else {
+      day.slots.push({ id: nextSlotId, ...slotPatch });
+    }
   }, slotId ? "planUpdated" : "planAdded");
   if (saved) els.dialog.close();
 }
@@ -2249,7 +2367,6 @@ function selectActiveDay(dayId) {
     // Day switching still works when history manipulation is unavailable.
   }
   displayTrip = localizeTrip(currentTrip, currentLanguage);
-  renderEssentials();
   renderDayNavigation();
   renderItinerary();
   renderCredits();
@@ -2333,12 +2450,12 @@ function findCanonicalLocation(name) {
   }) || null;
 }
 
-function googleMapsUrl(location) {
-  return googleMapsDestinations(location)[0]?.url || "";
+function googleMapsUrl(location, options) {
+  return googleMapsDestinations(location, options)[0]?.url || "";
 }
 
-function googleMapsAnchor(location) {
-  const destinations = googleMapsDestinations(location);
+function googleMapsAnchor(location, options) {
+  const destinations = googleMapsDestinations(location, options);
   const links = destinations.map((destination) => {
     const label = destination.labels?.[currentLanguage] || "";
     const link = element("a", "google-maps-link");
@@ -2352,17 +2469,18 @@ function googleMapsAnchor(location) {
     return link;
   });
 
-  if (links.length <= 1) return links[0] || document.createTextNode("");
+  if (links.length <= 1) return links[0] || null;
   const group = element("span", "google-maps-links");
   group.append(...links);
   return group;
 }
 
-function googleMapsDestinations(location = {}) {
+function googleMapsDestinations(location = {}, { allowSearchFallback = true } = {}) {
   const stored = parseFullGoogleMapsPlaceUrl(location.googleMapsUrl || location.mapsUrl || "");
   if (stored.ok) return [{ url: stored.url }];
   const verified = getGooglePlaceLinks(location);
   if (verified.length) return verified;
+  if (!allowSearchFallback) return [];
   const fallbackUrl = buildGoogleMapsUrl(location);
   return fallbackUrl ? [{ url: fallbackUrl }] : [];
 }

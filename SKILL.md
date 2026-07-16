@@ -5,7 +5,7 @@ description: Build, regenerate, test, and optionally deploy a synchronized multi
 
 # Build Shared Trip App
 
-Turn a trip's source material into the included polished travel PWA: four languages, a day-by-day map, compact checklist and weather, expandable bookings and POIs, nearby ideas, exact Google Maps place links, credited photos, install support, offline shell, and no-account shared editing.
+Turn a trip's source material into the included polished travel PWA: four languages, a day-by-day map, a date-flexible checklist, an all-trip weather slider with expanded details, expandable bookings and POIs, nearby ideas, optional exact Google Maps place links, credited photos, install support, offline shell, and no-account shared editing.
 
 Treat every new trip as a clean-room build. Never carry itinerary content, travelers, Firebase identifiers, storage keys, or photos from another trip.
 
@@ -41,7 +41,8 @@ Treat every new trip as a clean-room build. Never carry itinerary content, trave
 ## Authoring rules
 
 - Put flights and stays in chronological `plans`; they are itinerary POIs, not a separate booking page.
-- Derive each plan's address, label, and marker from a full Google Maps browser place URL. Reject Share short links and viewport-only coordinates.
+- When a plan has a meaningful location, derive its address, label, and marker from a full Google Maps browser place URL. A deliberately locationless placeholder may omit the URL and remains timeline-only. Reject Share short links and viewport-only coordinates whenever a URL is supplied.
+- Give checklist items an explicit `dueDate` without restricting it to the pre-departure period. Items due on a trip date also appear near the top of that day's itinerary.
 - Include a credited representative photo for every itinerary plan and recommendation.
 - Supply at least five `eat`, five `seeGo`, and five `buy` ideas per day. Do not repeat places already in that day's plan.
 - Record ratings with their provider and `ratingCheckedAt` date. Do not invent ratings.

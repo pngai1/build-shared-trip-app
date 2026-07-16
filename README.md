@@ -1,8 +1,6 @@
 # Build Shared Trip App
 
-Turn an itinerary, booking notes, and Google Maps place links into a polished, synchronized, multilingual travel PWA.
-
-![Tide Lines fictional trip demo](docs/demo-preview.png)
+Turn an itinerary, booking notes, and optional Google Maps place links into a polished, synchronized, multilingual travel PWA.
 
 The root README is for people browsing the repository. AI agents should follow [`SKILL.md`](SKILL.md).
 
@@ -20,12 +18,20 @@ Then open [http://localhost:4173](http://localhost:4173). The checked-in demo us
 
 The `docs/` output is also ready to use as a GitHub Pages source. Publishing Pages is intentionally left off because Pages visibility is separate from this private repository's visibility.
 
+Regenerate the checked-in demo after template or example-data changes:
+
+```bash
+node scripts/build-docs-demo.mjs
+```
+
 ## What it builds
 
 - A mobile-first itinerary with an interactive daily map and swipeable bottom sheet
 - Flights, stays, restaurants, transport, and POIs in one chronological timeline
 - English, Simplified Chinese, Traditional Chinese, and Japanese UI and trip content
-- Compact checklist and live weather, expandable details, exact Google Maps place links, and credited photos
+- Date-flexible checklist with due items surfaced in each itinerary day
+- All-date live weather slider with expandable hourly details
+- Exact Google Maps place links when supplied, plus timeline-only placeholder plans
 - Nearby eat, see/go, and buy ideas for every day
 - Firebase anonymous synchronization without an account screen
 - Installable PWA shell with offline itinerary support
@@ -71,4 +77,4 @@ Clone or copy the repository as one skill directory, then invoke `$build-shared-
 | [`assets/trip.example.json`](assets/trip.example.json) | Fictional multilingual input example |
 | [`scripts/`](scripts/) | Validation, generation, QA, privacy, cache, and parser tools |
 | [`references/`](references/) | Input schema, feature contract, research, and deployment guidance |
-| [`docs/`](docs/) | Generated fictional example page and preview image |
+| [`docs/`](docs/) | Generated fictional example page for local preview or GitHub Pages |

@@ -56,20 +56,28 @@ function normalizeTrip(input) {
   return trip;
 }
 
-function normalizePlan(plan, index) {
+export function normalizePlan(plan, index) {
   const normalized = structuredClone(plan);
-  const parsed = parseFullGoogleMapsPlaceUrl(normalized.googleMapsUrl);
-  if (!parsed.ok) throw new Error(`Could not normalize plan ${normalized.id || index}: invalid Google Maps link (${parsed.reason})`);
-  Object.assign(normalized, {
-    googleMapsUrl: parsed.url,
-    googleMapsPlaceName: parsed.placeName,
-    googleMapsPlaceLabel: parsed.placeLabel,
-    googleMapsFeatureId: parsed.featureId,
-    address: normalized.address || parsed.address,
-    lat: parsed.lat,
-    lng: parsed.lng,
-    approximateLocation: false
-  });
+  const mapsUrl = String(normalized.googleMapsUrl || "").trim();
+  if (mapsUrl) {
+    const parsed = parseFullGoogleMapsPlaceUrl(mapsUrl);
+    if (!parsed.ok) throw new Error(`Could not normalize plan ${normalized.id || index}: invalid Google Maps link (${parsed.reason})`);
+    Object.assign(normalized, {
+      googleMapsUrl: parsed.url,
+      googleMapsPlaceName: parsed.placeName,
+      googleMapsPlaceLabel: parsed.placeLabel,
+      googleMapsFeatureId: parsed.featureId,
+      address: normalized.address || parsed.address,
+      lat: parsed.lat,
+      lng: parsed.lng,
+      approximateLocation: false
+    });
+  } else {
+    [
+      "googleMapsUrl", "mapsUrl", "googleMapsPlaceName", "googleMapsPlaceLabel",
+      "googleMapsFeatureId", "address", "lat", "lng", "approximateLocation"
+    ].forEach((key) => delete normalized[key]);
+  }
   normalized.photoSourceId ||= normalized.id;
   return normalized;
 }

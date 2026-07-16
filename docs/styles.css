@@ -2498,20 +2498,26 @@ details[open] > summary .summary-chevron,
 }
 
 .weather-peeks {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-auto-columns: minmax(12.5rem, 15rem);
+  grid-auto-flow: column;
   gap: 0.42rem;
   margin-top: 0.58rem;
+  padding: 0.05rem 0 0.45rem;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: inline proximity;
+  scrollbar-width: thin;
 }
 
 .weather-peek {
-  position: relative;
-  flex: 1 1 13rem;
+  width: 100%;
   min-width: 0;
-}
-
-.weather-peek[open] {
-  flex-basis: 100%;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  appearance: none;
+  scroll-snap-align: start;
 }
 
 .weather-peek__summary {
@@ -2527,11 +2533,29 @@ details[open] > summary .summary-chevron,
   border-radius: 11px;
 }
 
+.weather-peek[aria-expanded="true"] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(219, 117, 73, 0.14);
+}
+
 .weather-peek__identity {
   display: flex;
   align-items: center;
   gap: 0.38rem;
   min-width: 0;
+}
+
+.weather-peek__identity-copy {
+  display: grid;
+  gap: 0.08rem;
+  min-width: 0;
+}
+
+.weather-peek__date {
+  color: var(--ink);
+  font-size: 0.72rem;
+  font-weight: 800;
+  white-space: nowrap;
 }
 
 .weather-peek__icon {
@@ -2561,11 +2585,6 @@ details[open] > summary .summary-chevron,
 }
 
 .weather-popover {
-  position: relative;
-  top: auto;
-  right: auto;
-  z-index: auto;
-  display: none;
   width: 100%;
   margin-top: 0.38rem;
   padding: 0.75rem;
@@ -2575,15 +2594,19 @@ details[open] > summary .summary-chevron,
   box-shadow: 0 10px 28px rgba(23, 54, 47, 0.1);
 }
 
-.weather-peek[open] .weather-popover {
-  display: block;
+.weather-popover__heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 0.8rem;
+  margin-bottom: 0.55rem;
+  color: var(--ink);
+  font-size: 0.78rem;
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .weather-peek:hover .weather-popover,
-  .weather-peek:focus-within .weather-popover {
-    display: block;
-  }
+.weather-popover__heading > span {
+  color: var(--muted);
 }
 
 .weather-popover__overview {
@@ -2897,6 +2920,45 @@ details[open] > summary .summary-chevron,
 .day-summary {
   margin-top: 0;
   font-size: 0.88rem;
+}
+
+.day-todos {
+  margin: 0 0 0.9rem 2.8rem;
+  padding: 0.7rem 0.85rem 0.25rem;
+  background: var(--accent-soft);
+  border: 1px solid rgba(219, 117, 73, 0.25);
+  border-radius: 13px;
+}
+
+.day-todos__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+
+.day-todos__heading h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.86rem;
+}
+
+.day-todos .pretrip-todo {
+  margin-top: 0.25rem;
+}
+
+.day-todos .todo-item {
+  grid-template-columns: auto minmax(0, 1fr);
+  min-height: 38px;
+  padding-block: 0.45rem;
+}
+
+.day-todos .todo-deadline {
+  font-size: 0.64rem;
+}
+
+.day-todos .todo-text {
+  font-size: 0.8rem;
 }
 
 .timeline {
@@ -3609,7 +3671,7 @@ details[open] > summary .summary-chevron,
     align-self: stretch;
   }
 
-  .weather-peek[open] .weather-popover {
+  .weather-popover {
     position: relative;
     top: auto;
     right: auto;
@@ -4045,6 +4107,11 @@ details[open] > summary .summary-chevron,
     line-height: 1.45;
   }
 
+  html.is-itinerary-view .day-todos {
+    margin: 0 0 0.65rem;
+    padding: 0.6rem 0.7rem 0.2rem;
+  }
+
   html.is-itinerary-view .timeline-card__summary {
     grid-template-columns: 4.6rem minmax(0, 1fr) 1.15rem;
     min-height: 5.15rem;
@@ -4121,15 +4188,6 @@ details[open] > summary .summary-chevron,
   .quick-grid {
     grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
     align-items: start;
-  }
-
-  .quick-grid:has(.checklist-panel:not([open])) {
-    align-items: stretch;
-  }
-
-  .quick-grid:has(.checklist-panel:not([open])) > .quick-panel,
-  .quick-grid:has(.checklist-panel:not([open])) > .checklist-panel > .quick-panel__summary {
-    height: 100%;
   }
 
   .checklist-panel:not([open]) > .quick-panel__summary {

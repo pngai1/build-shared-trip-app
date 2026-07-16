@@ -188,12 +188,19 @@ function validatePlan(plan, location, context) {
   if (plan.planType && !PLAN_TYPE_SET.has(plan.planType)) error(`${location}.planType`, `must be one of ${PLAN_TYPES.join(", ")}`);
   if (typeof plan.booked !== "boolean") error(`${location}.booked`, "must be true or false");
   if (plan.time != null && (typeof plan.time !== "string" || plan.time.length > 120)) error(`${location}.time`, "must be a string no longer than 120 characters");
-  requireString(plan, "googleMapsUrl", location, error, { max: 4096 });
-  const parsed = parseFullGoogleMapsPlaceUrl(plan.googleMapsUrl);
-  if (!parsed.ok) error(`${location}.googleMapsUrl`, `must be a full Google Maps /maps/place/ URL with coordinates (${parsed.reason})`);
-  if (parsed.ok && parsed.coordinateSource !== "place") error(`${location}.googleMapsUrl`, "must include the POI's !3d latitude and !4d longitude, not only the map viewport center");
-  if (parsed.ok && Number.isFinite(plan.lat) && Math.abs(plan.lat - parsed.lat) > 0.0001) error(`${location}.lat`, "does not match the Google Maps place URL");
-  if (parsed.ok && Number.isFinite(plan.lng) && Math.abs(plan.lng - parsed.lng) > 0.0001) error(`${location}.lng`, "does not match the Google Maps place URL");
+  if (plan.googleMapsUrl != null && typeof plan.googleMapsUrl !== "string") {
+    error(`${location}.googleMapsUrl`, "must be a string when provided");
+  } else if (String(plan.googleMapsUrl || "").length > 4096) {
+    error(`${location}.googleMapsUrl`, "must be no longer than 4096 characters");
+  }
+  const mapsUrl = String(plan.googleMapsUrl || "").trim();
+  if (mapsUrl) {
+    const parsed = parseFullGoogleMapsPlaceUrl(mapsUrl);
+    if (!parsed.ok) error(`${location}.googleMapsUrl`, `must be a full Google Maps /maps/place/ URL with coordinates (${parsed.reason})`);
+    if (parsed.ok && parsed.coordinateSource !== "place") error(`${location}.googleMapsUrl`, "must include the POI's !3d latitude and !4d longitude, not only the map viewport center");
+    if (parsed.ok && Number.isFinite(plan.lat) && Math.abs(plan.lat - parsed.lat) > 0.0001) error(`${location}.lat`, "does not match the Google Maps place URL");
+    if (parsed.ok && Number.isFinite(plan.lng) && Math.abs(plan.lng - parsed.lng) > 0.0001) error(`${location}.lng`, "does not match the Google Maps place URL");
+  }
   validatePhoto(plan.photo, `${location}.photo`, error, allowExample);
   validateTranslations(plan, ["name", "review", "notes"].filter((key) => nonEmptyString(plan[key])), location, error);
   if (plan.participantGroupIds != null && !Array.isArray(plan.participantGroupIds)) {

@@ -20,6 +20,7 @@ assert.equal(viewportOnly.ok, true);
 assert.equal(viewportOnly.coordinateSource, "viewport");
 
 for (const invalid of [
+  "",
   "https://maps.app.goo.gl/short-link",
   "https://example.com/maps/place/Fake/@1,2,10z",
   "http://www.google.com/maps/place/Fake/@1,2,10z",
