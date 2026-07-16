@@ -1,6 +1,6 @@
-import { UI_ZH_HANT } from "./translations-zh-hant.js?v=v-73eda1b76745";
-import { UI_ZH_HANS } from "./translations-zh-hans.js?v=v-73eda1b76745";
-import { UI_JA } from "./translations-ja.js?v=v-73eda1b76745";
+import { UI_ZH_HANT } from "./translations-zh-hant.js?v=v-af917aee95a7";
+import { UI_ZH_HANS } from "./translations-zh-hans.js?v=v-af917aee95a7";
+import { UI_JA } from "./translations-ja.js?v=v-af917aee95a7";
 
 const seedTrip = readSeedTrip();
 const LANGUAGE_STORAGE_KEY = `${seedTrip.slug || "shared-trip"}-language`;
@@ -122,7 +122,6 @@ export const UI_EN = {
   setupFailed: "Setup failed",
   localPreview: "Saved on this device",
   weather: "Weather",
-  tripForecast: "Trip forecast by day and stop",
   forecastDetailsFor: "Forecast details for {date}",
   forecastRefreshNote: "A fresh forecast is requested whenever someone opens the app. Times use the trip timezone; temperatures use Celsius.",
   loadingForecast: "Loading the latest forecast…",
@@ -247,6 +246,10 @@ export const UI_EN = {
   resourcesPageIntro: "Payment methods and useful iPhone apps for this trip.",
   resourceFreshness: "Payment support and app availability can change; use the linked official pages to verify important details.",
   weatherForecast: "Weather forecast",
+  weatherDatesAria: "Weather forecast for every trip date",
+  openWeatherDetails: "Open hourly weather for {date}",
+  weatherLocations: "Forecast locations",
+  hourlyWeatherFor: "Hourly weather for {location} on {date}",
   rainChance: "Rain",
   chooseDay: "Choose day {number}, {date}, {area}",
   dayShort: "Day {number}",

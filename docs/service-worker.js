@@ -1,30 +1,30 @@
-const CACHE_NAME = "tide-lines-sample-v-73eda1b76745";
-const VERSIONED_RESOURCES_URL = "./resources.html?v=v-73eda1b76745";
+const CACHE_NAME = "tide-lines-sample-v-af917aee95a7";
+const VERSIONED_RESOURCES_URL = "./resources.html?v=v-af917aee95a7";
 const LOCAL_SHELL = [
   "./",
   "./index.html",
   VERSIONED_RESOURCES_URL,
-  "./styles.css?v=v-73eda1b76745",
-  "./app.js?v=v-73eda1b76745",
-  "./resources.js?v=v-73eda1b76745",
-  "./daily-guide.js?v=v-73eda1b76745",
-  "./i18n.js?v=v-73eda1b76745",
-  "./map-links.js?v=v-73eda1b76745",
-  "./google-place-links.js?v=v-73eda1b76745",
-  "./google-maps-place-url.js?v=v-73eda1b76745",
-  "./reminder-dates.js?v=v-73eda1b76745",
-  "./weather-forecast.js?v=v-73eda1b76745",
-  "./trip-resources.js?v=v-73eda1b76745",
-  "./flight-bookings.js?v=v-73eda1b76745",
-  "./translations-zh-hant.js?v=v-73eda1b76745",
-  "./translations-zh-hans.js?v=v-73eda1b76745",
-  "./translations-ja.js?v=v-73eda1b76745",
-  "./firebase-config.js?v=v-73eda1b76745",
-  "./manifest.webmanifest?v=v-73eda1b76745",
-  "./icons/icon-192.png?v=v-73eda1b76745",
-  "./icons/icon-512.png?v=v-73eda1b76745",
-  "./icons/apple-touch-icon.png?v=v-73eda1b76745",
-  "./icons/icon.svg?v=v-73eda1b76745"
+  "./styles.css?v=v-af917aee95a7",
+  "./app.js?v=v-af917aee95a7",
+  "./resources.js?v=v-af917aee95a7",
+  "./daily-guide.js?v=v-af917aee95a7",
+  "./i18n.js?v=v-af917aee95a7",
+  "./map-links.js?v=v-af917aee95a7",
+  "./google-place-links.js?v=v-af917aee95a7",
+  "./google-maps-place-url.js?v=v-af917aee95a7",
+  "./reminder-dates.js?v=v-af917aee95a7",
+  "./weather-forecast.js?v=v-af917aee95a7",
+  "./trip-resources.js?v=v-af917aee95a7",
+  "./flight-bookings.js?v=v-af917aee95a7",
+  "./translations-zh-hant.js?v=v-af917aee95a7",
+  "./translations-zh-hans.js?v=v-af917aee95a7",
+  "./translations-ja.js?v=v-af917aee95a7",
+  "./firebase-config.js?v=v-af917aee95a7",
+  "./manifest.webmanifest?v=v-af917aee95a7",
+  "./icons/icon-192.png?v=v-af917aee95a7",
+  "./icons/icon-512.png?v=v-af917aee95a7",
+  "./icons/apple-touch-icon.png?v=v-af917aee95a7",
+  "./icons/icon.svg?v=v-af917aee95a7"
 ];
 
 const OPTIONAL_CDN_SHELL = [

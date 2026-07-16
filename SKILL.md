@@ -5,7 +5,7 @@ description: Build, regenerate, test, and optionally deploy a synchronized multi
 
 # Build Shared Trip App
 
-Turn a trip's source material into the included polished travel PWA: four languages, a day-by-day map, a date-flexible checklist, an all-trip weather slider with expanded details, expandable bookings and POIs, nearby ideas, optional exact Google Maps place links, credited photos, install support, offline shell, and no-account shared editing.
+Turn a trip's source material into the included polished travel PWA: four languages, a day-by-day map, a date-flexible checklist, a compact all-trip weather slider with icon-opened hourly dialogs, expandable bookings and POIs, nearby ideas, optional exact Google Maps place links, credited photos, install support, offline shell, and no-account shared editing.
 
 Treat every new trip as a clean-room build. Never carry itinerary content, travelers, Firebase identifiers, storage keys, or photos from another trip.
 

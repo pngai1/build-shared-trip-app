@@ -9,8 +9,8 @@ Preserve these behaviors unless the user explicitly requests a design change.
 - Combine country and trip dates into one concise line.
 - Use localized decorative route/place names, not a redundant explanatory route sentence.
 - Keep language selection, sync state, install action, and the separate Payments & apps link compact and stable across languages.
-- Keep the collapsed checklist and weather cards equal-height at desktop sizes. Their expanded content must not overlap the date navigation.
-- Show every itinerary date together in a horizontally scrollable weather summary, independent of the selected itinerary day. Each date/stop summary shows high/low Celsius and precipitation; selecting it opens a full-width detail panel with hourly temperature, precipitation chance, UV, wind, and sunrise/sunset.
+- Keep the collapsed checklist and weather cards equal-height at desktop sizes. Weather details must open without reflowing the page or overlapping the date navigation.
+- Show every itinerary date together in a horizontally scrollable weather summary, independent of the selected itinerary day. Use one equal-height narrow card per date with one aggregate row: wettest-stop icon, maximum high, minimum low, maximum rain chance, and a primary stop label plus `+N` for additional stops. A small timetable icon opens a native dialog or mobile bottom sheet; location chips switch one stop's semantic hourly table at a time, including temperature, precipitation chance, UV, wind, and sunrise/sunset.
 - Display plan-change and forecast-fetch timestamps in the viewer's current device time zone. Determine the active trip day in `trip.timezone`.
 - Keep required external attributions inside the collapsed Sources & photo credits disclosure.
 
@@ -47,6 +47,7 @@ Do not duplicate a restaurant in Food notes when it is already a plan.
 - Do not let timeline scrolling drag the sheet.
 - Reframe map markers after every snap, resize, rotation, or day change.
 - Keep dialogs and close buttons inside iPhone safe areas.
+- Keep native date inputs within the dialog's content width on iPhone. Preserve the operating-system date picker.
 - Prevent page-level pinch zoom and canvas drift while leaving map gestures functional.
 - Do not add a bottom filler panel. Extend scrollable itinerary content to the visible safe area without moving the map/sheet border.
 
@@ -100,6 +101,7 @@ When a full place URL is supplied, parse and save place name, address, final POI
 - Add/edit close controls remain reachable on iPhone.
 - First Firestore create and two-client live updates work.
 - Weather freshness and plan update timestamps are current.
-- Long trips expose every weather date through horizontal scrolling, and expanded forecast details remain reachable on desktop and iPhone.
+- Long trips expose every equal-height compact weather date card through horizontal scrolling. Each card has one aggregate day row, and the per-date timetable icon opens a contained, scrollable details dialog on desktop and iPhone without shifting the page. Location chips switch one semantic hourly table at a time while preserving dialog scroll and returning focus to the opener.
+- Native date inputs never widen a dialog or extend beyond the iPhone viewport.
 - Checklist items can be created before, during, or after the trip, and trip-date items appear in the matching itinerary day.
 - No developer-facing sentences, personal booking references, or citations clutter traveler content.
