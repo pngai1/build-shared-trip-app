@@ -1,0 +1,771 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#17362f">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Tide Lines">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="description" content="Payments and useful local apps for Tide Lines.">
+  <title>Travel resources · Tide Lines</title>
+  <link rel="manifest" href="./manifest.webmanifest?v=v-d7e4948348d0">
+  <link rel="icon" href="./icons/icon-192.png?v=v-d7e4948348d0" type="image/png" sizes="192x192">
+  <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png?v=v-d7e4948348d0">
+  <link rel="stylesheet" href="./styles.css?v=v-d7e4948348d0">
+</head>
+<body class="resources-page">
+  <header class="resource-page-header">
+    <div class="resource-page-header__inner">
+      <div class="resource-header-bar">
+        <a class="brand brand--resource" href="./" aria-label="Tide Lines">
+          <img class="brand-icon" src="./icons/icon-192.png?v=v-d7e4948348d0" width="44" height="44" alt="" aria-hidden="true">
+          <span class="brand-name">Tide Lines</span>
+        </a>
+        <label class="language-control" for="language-select">
+          <span class="sr-only" data-i18n="language">Language</span>
+          <select id="language-select" aria-label="Language">
+            <option value="en">English</option>
+            <option value="zh-Hans">简体中文</option>
+            <option value="zh-Hant">繁體中文</option>
+            <option value="ja">日本語</option>
+          </select>
+        </label>
+      </div>
+      <a class="back-link" href="./" data-i18n="backToTrip">← Back to the trip</a>
+      <h1 data-i18n="travelResources">Payments & useful apps</h1>
+    </div>
+  </header>
+
+  <main class="resource-page-main">
+    <section class="resource-page-section" aria-labelledby="payment-page-title">
+      <h2 id="payment-page-title" data-i18n="routePaymentGuide">Payment methods along the route</h2>
+      <div id="payment-page-content"></div>
+    </section>
+
+    <section class="resource-page-section" aria-labelledby="apps-page-title">
+      <h2 id="apps-page-title" data-i18n="iosAppsForTrip">Useful local apps</h2>
+      <div id="apps-page-content"></div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p data-i18n="resourceFreshness">Payment support and app availability can change; use the linked official pages to verify important details.</p>
+    </div>
+  </footer>
+
+  <script id="trip-data" type="application/json">
+{
+  "slug": "tide-lines-sample",
+  "country": "Sample Coast",
+  "timezone": "Europe/Lisbon",
+  "startDate": "2030-06-01",
+  "endDate": "2030-06-02",
+  "routeDecoration": "Harbor · Old Town · Headland",
+  "i18n": {
+    "zh-Hans": {
+      "country": "示例海岸",
+      "routeDecoration": "海港 · 老城 · 海岬",
+      "metaDescription": "可同步的多语言海岸之旅地图与行程。",
+      "disclaimer": "出发前请再次确认当天的天气、营业时间、预约与交通通知。"
+    },
+    "zh-Hant": {
+      "country": "示例海岸",
+      "routeDecoration": "海港 · 老城 · 海岬",
+      "metaDescription": "可同步的多語言海岸之旅地圖與行程。",
+      "disclaimer": "出發前請再次確認當天的天氣、營業時間、預約與交通通知。"
+    },
+    "ja": {
+      "country": "サンプル海岸",
+      "routeDecoration": "港 · 旧市街 · 岬",
+      "metaDescription": "同期できる多言語の海岸旅行マップと日程表。",
+      "disclaimer": "出発前に当日の天気、営業時間、予約、交通情報を再確認してください。"
+    }
+  },
+  "participantGroups": [
+    {
+      "id": "group-a",
+      "label": "A · B",
+      "members": [
+        "A",
+        "B"
+      ],
+      "alwaysTogether": true
+    },
+    {
+      "id": "group-b",
+      "label": "C · D",
+      "members": [
+        "C",
+        "D"
+      ],
+      "alwaysTogether": true
+    }
+  ],
+  "reminders": [
+    {
+      "id": "todo-check-weather",
+      "item": "Check the latest coastal weather",
+      "dueDate": "2030-05-31",
+      "done": false,
+      "i18n": {
+        "zh-Hans": {
+          "item": "查看最新海岸天气"
+        },
+        "zh-Hant": {
+          "item": "查看最新海岸天氣"
+        },
+        "ja": {
+          "item": "最新の海岸の天気を確認する"
+        }
+      }
+    },
+    {
+      "id": "todo-download-tickets",
+      "item": "Save transport tickets offline",
+      "dueDate": "2030-05-30",
+      "done": true,
+      "i18n": {
+        "zh-Hans": {
+          "item": "离线保存交通票券"
+        },
+        "zh-Hant": {
+          "item": "離線儲存交通票券"
+        },
+        "ja": {
+          "item": "交通チケットをオフライン保存する"
+        }
+      }
+    }
+  ],
+  "weather": {
+    "locations": [
+      {
+        "id": "harbor",
+        "name": "Harbor",
+        "lat": 38.70775,
+        "lng": -9.13659,
+        "i18n": {
+          "zh-Hans": {
+            "name": "海港"
+          },
+          "zh-Hant": {
+            "name": "海港"
+          },
+          "ja": {
+            "name": "港"
+          }
+        }
+      },
+      {
+        "id": "headland",
+        "name": "Headland",
+        "lat": 38.695,
+        "lng": -9.205,
+        "i18n": {
+          "zh-Hans": {
+            "name": "海岬"
+          },
+          "zh-Hant": {
+            "name": "海岬"
+          },
+          "ja": {
+            "name": "岬"
+          }
+        }
+      }
+    ]
+  },
+  "days": [
+    {
+      "id": "day-2030-06-01",
+      "date": "2030-06-01",
+      "area": "Harbor \u0026 Old Town",
+      "theme": "Meet by the water",
+      "summary": "Arrive, settle in, and share a relaxed first dinner.",
+      "weatherLocationIds": [
+        "harbor"
+      ],
+      "i18n": {
+        "zh-Hans": {
+          "area": "海港与老城",
+          "theme": "在水边会合",
+          "summary": "抵达、安顿，再一起享用轻松的晚餐。"
+        },
+        "zh-Hant": {
+          "area": "海港與老城",
+          "theme": "在水邊會合",
+          "summary": "抵達、安頓，再一起享用輕鬆的晚餐。"
+        },
+        "ja": {
+          "area": "港と旧市街",
+          "theme": "水辺で合流",
+          "summary": "到着して落ち着いたら、みんなで気軽な夕食へ。"
+        }
+      },
+      "recommendations": {
+        "eat": [
+          {
+            "name": "Pier Bakery",
+            "description": "Try the local morning pastry.",
+            "mapsUrl": "https://www.google.com/maps/place/Pier+Bakery,+4+Quay+Road/@38.708000,-9.135000,17z/data=!4m6!3m5!1s0x10:0x11!8m2!3d38.708100!4d-9.134900!16s%2Fg%2Fsample4",
+            "googleRating": 4.5,
+            "ratingCheckedAt": "2030-05-01",
+            "photo": {
+              "url": "./icons/icon-512.png",
+              "sourceUrl": "https://example.com/sample-photo-source",
+              "credit": "Sample placeholder — replace before production"
+            },
+            "i18n": {
+              "zh-Hans": {
+                "name": "码头面包店",
+                "description": "试试当地的早餐酥点。"
+              },
+              "zh-Hant": {
+                "name": "碼頭麵包店",
+                "description": "試試當地的早餐酥點。"
+              },
+              "ja": {
+                "name": "ピア・ベーカリー",
+                "description": "地元の朝のお菓子を試す。"
+              }
+            }
+          }
+        ],
+        "seeGo": [
+          {
+            "name": "Harbor Lookout",
+            "description": "A short waterfront viewpoint walk.",
+            "mapsUrl": "https://www.google.com/maps/place/Harbor+Lookout,+5+Waterfront+Walk/@38.706000,-9.132000,17z/data=!4m6!3m5!1s0x12:0x13!8m2!3d38.706100!4d-9.131900!16s%2Fg%2Fsample5",
+            "googleRating": 4.6,
+            "ratingCheckedAt": "2030-05-01",
+            "photo": {
+              "url": "./icons/icon-512.png",
+              "sourceUrl": "https://example.com/sample-photo-source",
+              "credit": "Sample placeholder — replace before production"
+            },
+            "i18n": {
+              "zh-Hans": {
+                "name": "海港观景台",
+                "description": "一段简短的滨水观景步道。"
+              },
+              "zh-Hant": {
+                "name": "海港觀景台",
+                "description": "一段簡短的濱水觀景步道。"
+              },
+              "ja": {
+                "name": "ハーバー展望台",
+                "description": "水辺を歩く短い展望コース。"
+              }
+            }
+          }
+        ],
+        "buy": [
+          {
+            "name": "Old Town Paper Shop",
+            "description": "Locally printed notebooks and cards.",
+            "mapsUrl": "https://www.google.com/maps/place/Old+Town+Paper+Shop,+6+Market+Lane/@38.711000,-9.141000,17z/data=!4m6!3m5!1s0x14:0x15!8m2!3d38.711100!4d-9.140900!16s%2Fg%2Fsample6",
+            "googleRating": 4.4,
+            "ratingCheckedAt": "2030-05-01",
+            "photo": {
+              "url": "./icons/icon-512.png",
+              "sourceUrl": "https://example.com/sample-photo-source",
+              "credit": "Sample placeholder — replace before production"
+            },
+            "i18n": {
+              "zh-Hans": {
+                "name": "老城纸品店",
+                "description": "本地印制的笔记本与卡片。"
+              },
+              "zh-Hant": {
+                "name": "老城紙品店",
+                "description": "本地印製的筆記本與卡片。"
+              },
+              "ja": {
+                "name": "旧市街の紙店",
+                "description": "地元印刷のノートとカード。"
+              }
+            }
+          }
+        ]
+      },
+      "slots": [
+        {
+          "id": "arrival-flight",
+          "name": "Arrival flight · Harbor Airport",
+          "period": "morning",
+          "time": "08:00–10:15",
+          "sortTime": "08:00",
+          "planType": "flight",
+          "booked": true,
+          "participantGroupIds": [
+            "group-a"
+          ],
+          "review": "Meet at the arrivals hall after baggage claim.",
+          "googleMapsUrl": "https://www.google.com/maps/place/Harbor+Airport,+1+Runway+Road/@38.700000,-9.150000,13z/data=!4m6!3m5!1s0xa:0xb!8m2!3d38.701000!4d-9.149000!16s%2Fg%2Fsample1",
+          "photo": {
+            "url": "./icons/icon-512.png",
+            "sourceUrl": "https://example.com/sample-photo-source",
+            "credit": "Sample placeholder — replace before production"
+          },
+          "booking": {
+            "route": "Origin → Harbor",
+            "service": "Sample Air SA100",
+            "schedule": "08:00–10:15",
+            "detail": "Booked flight details; private references are intentionally omitted.",
+            "links": [
+              {
+                "label": "Flight status",
+                "url": "https://example.com/flight-status"
+              }
+            ]
+          },
+          "i18n": {
+            "zh-Hans": {
+              "name": "抵达航班 · 海港机场",
+              "review": "领取行李后在到达大厅会合。"
+            },
+            "zh-Hant": {
+              "name": "抵達航班 · 海港機場",
+              "review": "領取行李後在抵達大廳會合。"
+            },
+            "ja": {
+              "name": "到着便 · ハーバー空港",
+              "review": "手荷物受取後、到着ロビーで合流。"
+            }
+          },
+          "googleMapsPlaceName": "Harbor Airport",
+          "googleMapsPlaceLabel": "Harbor Airport, 1 Runway Road",
+          "googleMapsFeatureId": "0xa:0xb",
+          "address": "1 Runway Road",
+          "lat": 38.701,
+          "lng": -9.149,
+          "approximateLocation": false,
+          "photoSourceId": "arrival-flight"
+        },
+        {
+          "id": "harbor-hotel",
+          "name": "Check in · Harbor House",
+          "period": "noon",
+          "time": "From 15:00",
+          "sortTime": "15:00",
+          "planType": "stay",
+          "booked": true,
+          "review": "Leave bags, then walk into the old town.",
+          "googleMapsUrl": "https://www.google.com/maps/place/Harbor+House,+2+Quay+Lane/@38.707000,-9.137000,16z/data=!4m6!3m5!1s0xc:0xd!8m2!3d38.707100!4d-9.136900!16s%2Fg%2Fsample2",
+          "photo": {
+            "url": "./icons/icon-512.png",
+            "sourceUrl": "https://example.com/sample-photo-source",
+            "credit": "Sample placeholder — replace before production"
+          },
+          "booking": {
+            "area": "Harbor waterfront",
+            "detail": "Booked stay without private reservation details."
+          },
+          "i18n": {
+            "zh-Hans": {
+              "name": "入住 · 海港之家",
+              "review": "放下行李后步行前往老城。"
+            },
+            "zh-Hant": {
+              "name": "入住 · 海港之家",
+              "review": "放下行李後步行前往老城。"
+            },
+            "ja": {
+              "name": "チェックイン · ハーバーハウス",
+              "review": "荷物を置いて旧市街へ歩く。"
+            }
+          },
+          "googleMapsPlaceName": "Harbor House",
+          "googleMapsPlaceLabel": "Harbor House, 2 Quay Lane",
+          "googleMapsFeatureId": "0xc:0xd",
+          "address": "2 Quay Lane",
+          "lat": 38.7071,
+          "lng": -9.1369,
+          "approximateLocation": false,
+          "photoSourceId": "harbor-hotel"
+        },
+        {
+          "id": "old-town-dinner",
+          "name": "Dinner · Lantern Kitchen",
+          "period": "evening",
+          "time": "19:00",
+          "sortTime": "19:00",
+          "planType": "restaurant",
+          "booked": true,
+          "participantGroupIds": [
+            "group-a"
+          ],
+          "review": "A small shared-plate restaurant near the square.",
+          "googleMapsUrl": "https://www.google.com/maps/place/Lantern+Kitchen,+3+Old+Town+Square/@38.710000,-9.140000,17z/data=!4m6!3m5!1s0xe:0xf!8m2!3d38.710100!4d-9.139900!16s%2Fg%2Fsample3",
+          "photo": {
+            "url": "./icons/icon-512.png",
+            "sourceUrl": "https://example.com/sample-photo-source",
+            "credit": "Sample placeholder — replace before production"
+          },
+          "i18n": {
+            "zh-Hans": {
+              "name": "晚餐 · 灯笼小厨",
+              "review": "广场附近的小型共享餐厅。"
+            },
+            "zh-Hant": {
+              "name": "晚餐 · 燈籠小廚",
+              "review": "廣場附近的小型共享餐廳。"
+            },
+            "ja": {
+              "name": "夕食 · ランタンキッチン",
+              "review": "広場近くの小さなシェアプレート店。"
+            }
+          },
+          "googleMapsPlaceName": "Lantern Kitchen",
+          "googleMapsPlaceLabel": "Lantern Kitchen, 3 Old Town Square",
+          "googleMapsFeatureId": "0xe:0xf",
+          "address": "3 Old Town Square",
+          "lat": 38.7101,
+          "lng": -9.1399,
+          "approximateLocation": false,
+          "photoSourceId": "old-town-dinner"
+        }
+      ]
+    },
+    {
+      "id": "day-2030-06-02",
+      "date": "2030-06-02",
+      "area": "Headland",
+      "theme": "Cliffs and craft",
+      "summary": "Follow the coast, then browse small makers before departure.",
+      "weatherLocationIds": [
+        "headland"
+      ],
+      "i18n": {
+        "zh-Hans": {
+          "area": "海岬",
+          "theme": "悬崖与手作",
+          "summary": "沿海岸前行，出发前再逛逛小型手作店。"
+        },
+        "zh-Hant": {
+          "area": "海岬",
+          "theme": "懸崖與手作",
+          "summary": "沿海岸前行，出發前再逛逛小型手作店。"
+        },
+        "ja": {
+          "area": "岬",
+          "theme": "崖とクラフト",
+          "summary": "海岸を巡り、出発前に小さな作り手の店へ。"
+        }
+      },
+      "recommendations": {
+        "eat": [
+          {
+            "name": "Headland Tea Room",
+            "description": "A quiet stop for tea and a light lunch.",
+            "mapsUrl": "https://www.google.com/maps/place/Headland+Tea+Room,+9+Coast+Road/@38.697000,-9.203000,16z/data=!4m6!3m5!1s0x20:0x21!8m2!3d38.697100!4d-9.202900!16s%2Fg%2Fsample9",
+            "googleRating": 4.3,
+            "ratingCheckedAt": "2030-05-01",
+            "photo": {
+              "url": "./icons/icon-512.png",
+              "sourceUrl": "https://example.com/sample-photo-source",
+              "credit": "Sample placeholder — replace before production"
+            },
+            "i18n": {
+              "zh-Hans": {
+                "name": "海岬茶室",
+                "description": "安静享用茶与轻午餐。"
+              },
+              "zh-Hant": {
+                "name": "海岬茶室",
+                "description": "安靜享用茶與輕午餐。"
+              },
+              "ja": {
+                "name": "岬のティールーム",
+                "description": "お茶と軽い昼食の静かな休憩所。"
+              }
+            }
+          }
+        ],
+        "seeGo": [
+          {
+            "name": "Sea Glass Cove",
+            "description": "A small cove below the headland path.",
+            "mapsUrl": "https://www.google.com/maps/place/Sea+Glass+Cove,+10+Coast+Road/@38.694000,-9.207000,15z/data=!4m6!3m5!1s0x22:0x23!8m2!3d38.694100!4d-9.206900!16s%2Fg%2Fsample10",
+            "googleRating": 4.7,
+            "ratingCheckedAt": "2030-05-01",
+            "photo": {
+              "url": "./icons/icon-512.png",
+              "sourceUrl": "https://example.com/sample-photo-source",
+              "credit": "Sample placeholder — replace before production"
+            },
+            "i18n": {
+              "zh-Hans": {
+                "name": "海玻璃湾",
+                "description": "海岬步道下方的小海湾。"
+              },
+              "zh-Hant": {
+                "name": "海玻璃灣",
+                "description": "海岬步道下方的小海灣。"
+              },
+              "ja": {
+                "name": "シーグラス入江",
+                "description": "岬の遊歩道の下にある小さな入江。"
+              }
+            }
+          }
+        ],
+        "buy": [
+          {
+            "name": "Coast Loom Studio",
+            "description": "Handwoven scarves and small textile pieces.",
+            "mapsUrl": "https://www.google.com/maps/place/Coast+Loom+Studio,+11+Craft+Street/@38.700000,-9.198000,17z/data=!4m6!3m5!1s0x24:0x25!8m2!3d38.700100!4d-9.197900!16s%2Fg%2Fsample11",
+            "googleRating": 4.8,
+            "ratingCheckedAt": "2030-05-01",
+            "photo": {
+              "url": "./icons/icon-512.png",
+              "sourceUrl": "https://example.com/sample-photo-source",
+              "credit": "Sample placeholder — replace before production"
+            },
+            "i18n": {
+              "zh-Hans": {
+                "name": "海岸织坊",
+                "description": "手织围巾与小型织品。"
+              },
+              "zh-Hant": {
+                "name": "海岸織坊",
+                "description": "手織圍巾與小型織品。"
+              },
+              "ja": {
+                "name": "コースト織物工房",
+                "description": "手織りのスカーフと小さな布製品。"
+              }
+            }
+          }
+        ]
+      },
+      "slots": [
+        {
+          "id": "cliff-walk",
+          "name": "Headland cliff walk",
+          "period": "morning",
+          "time": "09:30",
+          "sortTime": "09:30",
+          "planType": "sight",
+          "booked": false,
+          "review": "Bring a light layer; the exposed path can be windy.",
+          "googleMapsUrl": "https://www.google.com/maps/place/Headland+Cliff+Walk,+7+Coast+Road/@38.696000,-9.204000,14z/data=!4m6!3m5!1s0x16:0x17!8m2!3d38.695100!4d-9.205100!16s%2Fg%2Fsample7",
+          "photo": {
+            "url": "./icons/icon-512.png",
+            "sourceUrl": "https://example.com/sample-photo-source",
+            "credit": "Sample placeholder — replace before production"
+          },
+          "i18n": {
+            "zh-Hans": {
+              "name": "海岬悬崖步道",
+              "review": "带一件薄外套，无遮蔽路段可能风大。"
+            },
+            "zh-Hant": {
+              "name": "海岬懸崖步道",
+              "review": "帶一件薄外套，無遮蔽路段可能風大。"
+            },
+            "ja": {
+              "name": "岬の崖沿い散歩",
+              "review": "風が強いことがあるので薄手の上着を。"
+            }
+          },
+          "googleMapsPlaceName": "Headland Cliff Walk",
+          "googleMapsPlaceLabel": "Headland Cliff Walk, 7 Coast Road",
+          "googleMapsFeatureId": "0x16:0x17",
+          "address": "7 Coast Road",
+          "lat": 38.6951,
+          "lng": -9.2051,
+          "approximateLocation": false,
+          "photoSourceId": "cliff-walk"
+        },
+        {
+          "id": "makers-market",
+          "name": "Makers Market",
+          "period": "noon",
+          "time": "13:00",
+          "sortTime": "13:00",
+          "planType": "shopping",
+          "booked": false,
+          "review": "Small ceramics, textiles, and edible gifts.",
+          "googleMapsUrl": "https://www.google.com/maps/place/Makers+Market,+8+Craft+Street/@38.699000,-9.200000,16z/data=!4m6!3m5!1s0x18:0x19!8m2!3d38.699100!4d-9.199900!16s%2Fg%2Fsample8",
+          "photo": {
+            "url": "./icons/icon-512.png",
+            "sourceUrl": "https://example.com/sample-photo-source",
+            "credit": "Sample placeholder — replace before production"
+          },
+          "i18n": {
+            "zh-Hans": {
+              "name": "手作市集",
+              "review": "可买陶器、织品与当地食品伴手礼。"
+            },
+            "zh-Hant": {
+              "name": "手作市集",
+              "review": "可買陶器、織品與當地食品伴手禮。"
+            },
+            "ja": {
+              "name": "メイカーズマーケット",
+              "review": "小さな陶器、布製品、食べ物のお土産。"
+            }
+          },
+          "googleMapsPlaceName": "Makers Market",
+          "googleMapsPlaceLabel": "Makers Market, 8 Craft Street",
+          "googleMapsFeatureId": "0x18:0x19",
+          "address": "8 Craft Street",
+          "lat": 38.6991,
+          "lng": -9.1999,
+          "approximateLocation": false,
+          "photoSourceId": "makers-market"
+        }
+      ]
+    }
+  ],
+  "resources": {
+    "en": {
+      "payment": {
+        "summary": "Carry one physical card and a small amount of local cash.",
+        "facilities": [
+          {
+            "icon": "🚆",
+            "title": "Regional transit",
+            "summary": "Contactless card or local ticket",
+            "details": "Verify the accepted network for the exact operator before travel.",
+            "sources": [
+              {
+                "label": "Official transit guide",
+                "url": "https://example.com/transit"
+              }
+            ]
+          }
+        ]
+      },
+      "apps": {
+        "summary": "Only install apps that add something the phone does not already provide.",
+        "walletNote": "Add transport passes to Apple Wallet when the operator supports it.",
+        "items": [
+          {
+            "icon": "🚆",
+            "category": "Transit",
+            "name": "Sample Transit",
+            "description": "Replace with the official local route-planning app.",
+            "url": "https://apps.apple.com/app/id123456789"
+          }
+        ]
+      }
+    },
+    "zh-Hans": {
+      "payment": {
+        "summary": "携带一张实体银行卡与少量当地现金。",
+        "facilities": [
+          {
+            "icon": "🚆",
+            "title": "区域交通",
+            "summary": "非接触式银行卡或当地车票",
+            "details": "出发前请查看具体运营商接受的付款方式。",
+            "sources": [
+              {
+                "label": "官方交通指南",
+                "url": "https://example.com/transit"
+              }
+            ]
+          }
+        ]
+      },
+      "apps": {
+        "summary": "只安装手机系统尚未提供的必要应用。",
+        "walletNote": "如运营商支持，可将交通票加入 Apple 钱包。",
+        "items": [
+          {
+            "icon": "🚆",
+            "category": "交通",
+            "name": "示例交通",
+            "description": "请替换为当地官方路线规划应用。",
+            "url": "https://apps.apple.com/app/id123456789"
+          }
+        ]
+      }
+    },
+    "zh-Hant": {
+      "payment": {
+        "summary": "攜帶一張實體銀行卡與少量當地現金。",
+        "facilities": [
+          {
+            "icon": "🚆",
+            "title": "區域交通",
+            "summary": "感應式銀行卡或當地車票",
+            "details": "出發前請查看具體營運商接受的付款方式。",
+            "sources": [
+              {
+                "label": "官方交通指南",
+                "url": "https://example.com/transit"
+              }
+            ]
+          }
+        ]
+      },
+      "apps": {
+        "summary": "只安裝手機系統尚未提供的必要 App。",
+        "walletNote": "如營運商支援，可將交通票加入 Apple 錢包。",
+        "items": [
+          {
+            "icon": "🚆",
+            "category": "交通",
+            "name": "示例交通",
+            "description": "請替換為當地官方路線規劃 App。",
+            "url": "https://apps.apple.com/app/id123456789"
+          }
+        ]
+      }
+    },
+    "ja": {
+      "payment": {
+        "summary": "物理カード1枚と少額の現地通貨を持参してください。",
+        "facilities": [
+          {
+            "icon": "🚆",
+            "title": "地域交通",
+            "summary": "タッチ決済カードまたは現地乗車券",
+            "details": "出発前に各運行会社の対応決済手段を確認してください。",
+            "sources": [
+              {
+                "label": "公式交通ガイド",
+                "url": "https://example.com/transit"
+              }
+            ]
+          }
+        ]
+      },
+      "apps": {
+        "summary": "端末にない機能を補う必須アプリだけを入れます。",
+        "walletNote": "対応している場合は交通券をAppleウォレットに追加します。",
+        "items": [
+          {
+            "icon": "🚆",
+            "category": "交通",
+            "name": "サンプル交通",
+            "description": "現地の公式経路検索アプリに置き換えてください。",
+            "url": "https://apps.apple.com/app/id123456789"
+          }
+        ]
+      }
+    }
+  },
+  "title": "Tide Lines",
+  "shortName": "Tide Lines",
+  "metaDescription": "A synchronized multilingual map and itinerary for a shared coastal trip.",
+  "theme": {
+    "ink": "#17362f",
+    "accent": "#db7549",
+    "background": "#f3ede3"
+  },
+  "tips": [],
+  "disclaimer": "Check same-day conditions, opening hours, reservations, and transport notices before leaving.",
+  "buildId": "d7e4948348d0"
+}
+  </script>
+  <script type="module" src="./resources.js?v=v-d7e4948348d0"></script>
+</body>
+</html>
