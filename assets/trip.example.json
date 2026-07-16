@@ -60,7 +60,7 @@
       {
         "id": "todo-check-weather",
         "item": "Check the latest coastal weather",
-        "dueDate": "2030-05-31",
+        "dueDate": "2030-06-01",
         "done": false,
         "i18n": {
           "zh-Hans": { "item": "查看最新海岸天气" },
@@ -77,6 +77,17 @@
           "zh-Hans": { "item": "离线保存交通票券" },
           "zh-Hant": { "item": "離線儲存交通票券" },
           "ja": { "item": "交通チケットをオフライン保存する" }
+        }
+      },
+      {
+        "id": "todo-share-photos",
+        "item": "Share the group photo folder",
+        "dueDate": "2030-06-03",
+        "done": false,
+        "i18n": {
+          "zh-Hans": { "item": "共享合照文件夹" },
+          "zh-Hant": { "item": "共享合照資料夾" },
+          "ja": { "item": "グループ写真のフォルダを共有する" }
         }
       }
     ],
@@ -346,23 +357,22 @@
           },
           {
             "id": "makers-market",
-            "name": "Makers Market",
+            "name": "Choose a makers market",
             "period": "noon",
             "time": "13:00",
             "sortTime": "13:00",
             "planType": "shopping",
             "booked": false,
-            "review": "Small ceramics, textiles, and edible gifts.",
-            "googleMapsUrl": "https://www.google.com/maps/place/Makers+Market,+8+Craft+Street/@38.699000,-9.200000,16z/data=!4m6!3m5!1s0x18:0x19!8m2!3d38.699100!4d-9.199900!16s%2Fg%2Fsample8",
+            "review": "Timeline placeholder; the group will choose the exact market later.",
             "photo": {
               "url": "/icons/icon-512.png",
               "sourceUrl": "https://example.com/sample-photo-source",
               "credit": "Sample placeholder — replace before production"
             },
             "i18n": {
-              "zh-Hans": { "name": "手作市集", "review": "可买陶器、织品与当地食品伴手礼。" },
-              "zh-Hant": { "name": "手作市集", "review": "可買陶器、織品與當地食品伴手禮。" },
-              "ja": { "name": "メイカーズマーケット", "review": "小さな陶器、布製品、食べ物のお土産。" }
+              "zh-Hans": { "name": "挑选一家手作市集", "review": "时间表占位项目；大家稍后再决定具体市集。" },
+              "zh-Hant": { "name": "挑選一家手作市集", "review": "時間表佔位項目；大家稍後再決定具體市集。" },
+              "ja": { "name": "メイカーズマーケットを選ぶ", "review": "タイムライン用の仮予定。具体的な市場は後で決める。" }
             }
           }
         ],

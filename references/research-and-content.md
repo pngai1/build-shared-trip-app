@@ -8,7 +8,7 @@ Never reuse data from a prior generated trip. Search the working files for old n
 
 ## Resolve locations
 
-For every plan and recommendation:
+For every recommendation and every plan that should appear on the map:
 
 1. Open the named place's Google Maps review/address/photo page in a desktop browser.
 2. Copy the full address-bar URL.
@@ -17,6 +17,8 @@ For every plan and recommendation:
 5. Store that exact URL. Do not substitute a coordinate search, generic search query, shortened Share link, or nearby branch.
 
 If a venue has several branches, choose the branch on the route. Airports, stations, hotels, rental-car counters, and restaurants are POIs too.
+
+A deliberately locationless placeholder plan may omit `googleMapsUrl`. It remains in the timeline without a map marker or Maps action. Do not invent a generic search link or approximate pin for it.
 
 ## Photos and licensing
 
@@ -68,7 +70,7 @@ Do not translate the app name. Review every language in the rendered UI, not jus
 
 ## Weather and time
 
-Use the trip's IANA time zone to decide which trip day is current. Weather uses Open-Meteo with Celsius, precipitation probability/sum, hourly temperature, hourly rain probability, UV, wind, and sunrise/sunset.
+Use the trip's IANA time zone to decide which trip day is current. Weather uses Open-Meteo with Celsius, precipitation probability/sum, hourly temperature, hourly rain probability, UV, wind, and sunrise/sunset. Show every itinerary date together in a horizontally scrollable summary; selecting a date/stop opens the full detail panel without filtering the summary to the active itinerary day.
 
 The forecast only becomes available when dates enter the provider's forecast window. Do not present climate averages as an actual forecast. Show the fetch timestamp in the viewer's local time zone.
 

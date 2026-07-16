@@ -75,7 +75,6 @@
       <details class="quick-panel checklist-panel">
         <summary class="quick-panel__summary">
           <span class="quick-panel__heading">
-            <span class="eyebrow" data-i18n="beforeDeparture">Before departure</span>
             <strong id="checklist-title" data-i18n="sharedChecklist">Shared checklist</strong>
           </span>
           <span class="count-chip" id="reminder-count">4 open</span>
@@ -261,11 +260,10 @@
           </fieldset>
         </div>
         <label class="form-field">
-          <span data-i18n="googleMapsLink">Google Maps place link</span>
+          <span data-i18n="googleMapsLink">Full Google Maps link · optional</span>
           <input
             name="googleMapsUrl"
             type="url"
-            required
             maxlength="4096"
             inputmode="url"
             autocapitalize="none"
@@ -276,7 +274,7 @@
             data-i18n-placeholder="googleMapsLinkPlaceholder"
           >
         </label>
-        <p class="form-hint" id="google-maps-link-hint" data-i18n="googleMapsLinkHint">Open the exact place in a computer browser, then copy the full address-bar URL. Short Share links do not work.</p>
+        <p class="form-hint" id="google-maps-link-hint" data-i18n="googleMapsLinkHint">Optional. Leave this blank for a timeline-only placeholder, or paste the exact full place URL to add a map marker.</p>
         <p class="form-error" id="google-maps-link-error" role="alert" hidden></p>
         <div class="place-link-preview" id="google-maps-link-preview" role="status" aria-live="polite" hidden>
           <span class="place-link-preview__check" aria-hidden="true">✓</span>
@@ -317,7 +315,7 @@
           <span data-i18n="dueDate">Due date</span>
           <input name="dueDate" type="date" required>
         </label>
-        <p class="form-hint" data-i18n="todoDateHint">Choose a date on or before departure.</p>
+        <p class="form-hint" data-i18n="todoDateHint">Choose any date.</p>
       </div>
       <div class="dialog-actions">
         <button class="button button--danger" id="delete-reminder" type="button" data-i18n="delete">Delete</button>
@@ -482,29 +480,14 @@ __TRIP_DATA_JSON__
       return map;
     }
 
-    function computeReminders(startDateISO, items) {
-      return items
-        .map(function (it) {
-          var d = /^\d{4}-\d{2}-\d{2}$/.test(String(it.dueDate || ''))
-            ? new Date(it.dueDate + 'T00:00:00Z')
-            : new Date(startDateISO + 'T00:00:00Z');
-          if (!it.dueDate) d.setUTCDate(d.getUTCDate() - it.leadDays);
-          return { id: it.id, item: it.item, leadDays: it.leadDays, deadline: d.toISOString().slice(0, 10) };
-        })
-        .sort(function (a, b) {
-          return a.deadline < b.deadline ? -1 : a.deadline > b.deadline ? 1 : 0;
-        });
-    }
-
     function renderChecklistHTML(reminders, opts) {
       opts = opts || {};
       var lis = reminders.map(function (r) {
-        var beforeText = opts.formatBefore ? opts.formatBefore(r.deadline) : 'Before ' + r.deadline;
-        var daysAheadText = opts.formatDaysAhead ? opts.formatDaysAhead(r.leadDays) : r.leadDays + ' days ahead';
+        var dueText = opts.formatDue ? opts.formatDue(r.deadline) : 'Due ' + r.deadline;
         return '<li class="todo-item">'
           + '<input type="checkbox"> '
-          + '<span class="todo-deadline">' + escapeHTML(beforeText) + '</span> '
-          + '<span class="todo-text">' + escapeHTML(r.item) + ' · ' + escapeHTML(daysAheadText) + '</span>'
+          + '<span class="todo-deadline">' + escapeHTML(dueText) + '</span> '
+          + '<span class="todo-text">' + escapeHTML(r.item) + '</span>'
           + '</li>';
       }).join('');
       return '<ul class="pretrip-todo">' + lis + '</ul>';

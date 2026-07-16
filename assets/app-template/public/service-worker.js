@@ -12,6 +12,7 @@ const LOCAL_SHELL = [
   "/map-links.js?v=__CACHE_VERSION__",
   "/google-place-links.js?v=__CACHE_VERSION__",
   "/google-maps-place-url.js?v=__CACHE_VERSION__",
+  "/reminder-dates.js?v=__CACHE_VERSION__",
   "/weather-forecast.js?v=__CACHE_VERSION__",
   "/trip-resources.js?v=__CACHE_VERSION__",
   "/flight-bookings.js?v=__CACHE_VERSION__",

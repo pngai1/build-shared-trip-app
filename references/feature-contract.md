@@ -9,8 +9,8 @@ Preserve these behaviors unless the user explicitly requests a design change.
 - Combine country and trip dates into one concise line.
 - Use localized decorative route/place names, not a redundant explanatory route sentence.
 - Keep language selection, sync state, install action, and the separate Payments & apps link compact and stable across languages.
-- Keep checklist and weather cards equal-height at desktop sizes. Their expanded content must not overlap the date navigation.
-- Show only high/low Celsius and precipitation in the compact weather row. Expansion shows hourly temperature, precipitation chance, UV, wind, and sunrise/sunset.
+- Keep the collapsed checklist and weather cards equal-height at desktop sizes. Their expanded content must not overlap the date navigation.
+- Show every itinerary date together in a horizontally scrollable weather summary, independent of the selected itinerary day. Each date/stop summary shows high/low Celsius and precipitation; selecting it opens a full-width detail panel with hourly temperature, precipitation chance, UV, wind, and sunrise/sunset.
 - Display plan-change and forecast-fetch timestamps in the viewer's current device time zone. Determine the active trip day in `trip.timezone`.
 - Keep required external attributions inside the collapsed Sources & photo credits disclosure.
 
@@ -25,6 +25,7 @@ Preserve these behaviors unless the user explicitly requests a design change.
 - Keep the map synchronized to the active day and reframe all current markers.
 - Opening a timeline item focuses its marker without hiding it behind the mobile sheet.
 - A map-marker selection opens and scrolls to the corresponding plan.
+- Show checklist items due on the selected itinerary date near the top of that day's content, before the timeline. Checklist dates may be before, during, or after the trip.
 
 Timeline summary tags have two rows:
 
@@ -58,10 +59,10 @@ Show only:
 - time dropdown;
 - plan type;
 - Booked / not booked;
-- full Google Maps browser place URL;
+- optional full Google Maps browser place URL;
 - What to know.
 
-Require the full place URL for new plans. Parse and save place name, address, final POI coordinates, feature ID, and original URL. Update the timeline and map after saving. Preserve legacy coordinates only when editing an older item that has no URL yet.
+When a full place URL is supplied, parse and save place name, address, final POI coordinates, feature ID, and original URL, then update the timeline and map. When it is blank, save a timeline-only plan with no marker or Maps action. Preserve legacy coordinates only when editing an older item that already has coordinates but no URL.
 
 ## Recommendations
 
@@ -92,11 +93,13 @@ Require the full place URL for new plans. Parse and save place name, address, fi
 ## Regression checklist
 
 - Four languages render without shifting boxes, clipping dates, or translating the brand.
-- Every plan/recommendation link opens an exact place page.
-- Every plan marker matches its exact link.
+- Every supplied plan link and every recommendation link opens an exact place page.
+- Every mapped plan marker matches its exact link; a plan without a link has neither a marker nor a generated Maps action.
 - All plan photos and credits render; missing photos fail gracefully.
 - Tap-only handle interaction does not move the sheet.
 - Add/edit close controls remain reachable on iPhone.
 - First Firestore create and two-client live updates work.
 - Weather freshness and plan update timestamps are current.
+- Long trips expose every weather date through horizontal scrolling, and expanded forecast details remain reachable on desktop and iPhone.
+- Checklist items can be created before, during, or after the trip, and trip-date items appear in the matching itinerary day.
 - No developer-facing sentences, personal booking references, or citations clutter traveler content.

@@ -1,29 +1,30 @@
-const CACHE_NAME = "tide-lines-sample-v-d7e4948348d0";
-const VERSIONED_RESOURCES_URL = "./resources.html?v=v-d7e4948348d0";
+const CACHE_NAME = "tide-lines-sample-v-73eda1b76745";
+const VERSIONED_RESOURCES_URL = "./resources.html?v=v-73eda1b76745";
 const LOCAL_SHELL = [
   "./",
   "./index.html",
   VERSIONED_RESOURCES_URL,
-  "./styles.css?v=v-d7e4948348d0",
-  "./app.js?v=v-d7e4948348d0",
-  "./resources.js?v=v-d7e4948348d0",
-  "./daily-guide.js?v=v-d7e4948348d0",
-  "./i18n.js?v=v-d7e4948348d0",
-  "./map-links.js?v=v-d7e4948348d0",
-  "./google-place-links.js?v=v-d7e4948348d0",
-  "./google-maps-place-url.js?v=v-d7e4948348d0",
-  "./weather-forecast.js?v=v-d7e4948348d0",
-  "./trip-resources.js?v=v-d7e4948348d0",
-  "./flight-bookings.js?v=v-d7e4948348d0",
-  "./translations-zh-hant.js?v=v-d7e4948348d0",
-  "./translations-zh-hans.js?v=v-d7e4948348d0",
-  "./translations-ja.js?v=v-d7e4948348d0",
-  "./firebase-config.js?v=v-d7e4948348d0",
-  "./manifest.webmanifest?v=v-d7e4948348d0",
-  "./icons/icon-192.png?v=v-d7e4948348d0",
-  "./icons/icon-512.png?v=v-d7e4948348d0",
-  "./icons/apple-touch-icon.png?v=v-d7e4948348d0",
-  "./icons/icon.svg?v=v-d7e4948348d0"
+  "./styles.css?v=v-73eda1b76745",
+  "./app.js?v=v-73eda1b76745",
+  "./resources.js?v=v-73eda1b76745",
+  "./daily-guide.js?v=v-73eda1b76745",
+  "./i18n.js?v=v-73eda1b76745",
+  "./map-links.js?v=v-73eda1b76745",
+  "./google-place-links.js?v=v-73eda1b76745",
+  "./google-maps-place-url.js?v=v-73eda1b76745",
+  "./reminder-dates.js?v=v-73eda1b76745",
+  "./weather-forecast.js?v=v-73eda1b76745",
+  "./trip-resources.js?v=v-73eda1b76745",
+  "./flight-bookings.js?v=v-73eda1b76745",
+  "./translations-zh-hant.js?v=v-73eda1b76745",
+  "./translations-zh-hans.js?v=v-73eda1b76745",
+  "./translations-ja.js?v=v-73eda1b76745",
+  "./firebase-config.js?v=v-73eda1b76745",
+  "./manifest.webmanifest?v=v-73eda1b76745",
+  "./icons/icon-192.png?v=v-73eda1b76745",
+  "./icons/icon-512.png?v=v-73eda1b76745",
+  "./icons/apple-touch-icon.png?v=v-73eda1b76745",
+  "./icons/icon.svg?v=v-73eda1b76745"
 ];
 
 const OPTIONAL_CDN_SHELL = [

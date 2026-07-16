@@ -4,6 +4,7 @@
 
 - [Authoring envelope](#authoring-envelope)
 - [Trip and localization](#trip-and-localization)
+- [Reminders](#reminders)
 - [Days and plans](#days-and-plans)
 - [Maps and photos](#maps-and-photos)
 - [Recommendations](#recommendations)
@@ -116,6 +117,24 @@ Participant groups describe people who always move together:
 }
 ```
 
+## Reminders
+
+Checklist items use an explicit due date. The date may be before, during, or after the trip; there is no departure-date ceiling. When `dueDate` matches an itinerary day, the app also shows that item near the top of the matching day's itinerary.
+
+```json
+{
+  "id": "todo-confirm-late-checkout",
+  "item": "Confirm late checkout",
+  "dueDate": "2030-06-04",
+  "done": false,
+  "i18n": {
+    "zh-Hans": { "item": "确认延迟退房" },
+    "zh-Hant": { "item": "確認延遲退房" },
+    "ja": { "item": "レイトチェックアウトを確認する" }
+  }
+}
+```
+
 ## Days and plans
 
 Days must be chronological, unique, inside the trip range, and no more than 31:
@@ -138,7 +157,7 @@ Days must be chronological, unique, inside the trip range, and no more than 31:
 }
 ```
 
-Every plan is a mapable itinerary item:
+Every plan is an itinerary item. `googleMapsUrl` is optional so a locationless placeholder can remain timeline-only:
 
 ```json
 {
@@ -170,7 +189,7 @@ Allowed `period`: `morning`, `noon`, `evening`.
 
 Allowed `planType`: `flight`, `stay`, `restaurant`, `transport`, `car`, `sight`, `activity`, `event`, `shopping`, `other`.
 
-Use `sortTime` for chronological placement when `time` is descriptive. If using `sortOrder`, put it on every plan in the day. The generator converts `plans` to runtime `slots` and derives map metadata from the place URL.
+Use `sortTime` for chronological placement when `time` is descriptive. If using `sortOrder`, put it on every plan in the day. The generator converts `plans` to runtime `slots` and derives map metadata when a place URL is present. A plan without `googleMapsUrl` gets no marker or Maps action.
 
 Flights may add:
 
@@ -193,14 +212,14 @@ Never add a booking code or confirmation reference.
 
 ## Maps and photos
 
-Use the full browser address-bar URL for the exact Google Maps place. It must:
+For a plan that should appear on the map, use the full browser address-bar URL for the exact Google Maps place. It must:
 
 - use HTTPS on a Google Maps host;
 - contain `/maps/place/`;
 - contain the place's final `!3d<latitude>!4d<longitude>` pair;
 - resolve to the review/address/photo place page, not a search result or bare coordinate.
 
-Share links such as `maps.app.goo.gl/...` are intentionally rejected. The generator uses the final `!3d`/`!4d` coordinates even when the earlier `@lat,lng` viewport differs.
+Share links such as `maps.app.goo.gl/...` are intentionally rejected. The generator uses the final `!3d`/`!4d` coordinates even when the earlier `@lat,lng` viewport differs. Omit the field entirely for a timeline-only placeholder; if a non-empty URL is supplied, it must still meet every rule above. Recommendation `mapsUrl` values remain required.
 
 Each plan and recommendation needs `photo.url`, `photo.sourceUrl`, and `photo.credit`. Use an image you are licensed to reuse. Prefer official tourism media, Wikimedia Commons, or a user-supplied image. Record the creator and license. Do not scrape Google Maps, Tabelog, or commercial review photos.
 
@@ -252,7 +271,7 @@ Define each forecast point once:
 }
 ```
 
-Reference IDs from each day. Open-Meteo supplies up to 16 forecast days, so distant trips correctly show unavailable states until they enter the forecast window.
+Reference IDs from each day. The UI shows all itinerary dates together in a horizontal forecast slider and keeps hourly/UV/wind/sunrise/sunset details expandable for each date/stop. Open-Meteo supplies up to 16 forecast days, so distant dates remain visible with unavailable states until they enter the forecast window.
 
 ## Resources
 
@@ -304,4 +323,4 @@ Run:
 node scripts/validate-trip.mjs trip.json
 ```
 
-Validation rejects incomplete translations, weak Maps links, missing photos, duplicate ideas, unsafe secrets, invalid participant references, incomplete resources, oversized synchronized data, and stale structural mistakes before they become UI or Firebase failures.
+Validation rejects incomplete translations, invalid non-empty Maps links, missing photos, duplicate ideas, unsafe secrets, invalid participant references, incomplete resources, oversized synchronized data, and stale structural mistakes before they become UI or Firebase failures. A missing plan `googleMapsUrl` is valid; recommendation map links are still mandatory.

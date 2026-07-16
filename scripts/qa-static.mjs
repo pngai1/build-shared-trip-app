@@ -80,6 +80,12 @@ if (parserTest.status !== 0) fail(`Google Maps parser tests failed: ${(parserTes
 const generatorSafety = spawnSync(process.execPath, [path.join(scriptDirectory, "test-generator-safety.mjs")], { encoding: "utf8" });
 if (generatorSafety.status !== 0) fail(`generator safety tests failed: ${(generatorSafety.stderr || generatorSafety.stdout).trim()}`);
 
+const reminderDates = spawnSync(process.execPath, [path.join(scriptDirectory, "test-reminder-dates.mjs")], { encoding: "utf8" });
+if (reminderDates.status !== 0) fail(`reminder date tests failed: ${(reminderDates.stderr || reminderDates.stdout).trim()}`);
+
+const tripContract = spawnSync(process.execPath, [path.join(scriptDirectory, "test-trip-contract.mjs")], { encoding: "utf8" });
+if (tripContract.status !== 0) fail(`trip contract tests failed: ${(tripContract.stderr || tripContract.stdout).trim()}`);
+
 const privacy = spawnSync(process.execPath, [path.join(scriptDirectory, "audit-privacy.mjs"), root], { encoding: "utf8" });
 if (privacy.status !== 0) fail(`privacy audit failed:\n${(privacy.stderr || privacy.stdout).trim()}`);
 
