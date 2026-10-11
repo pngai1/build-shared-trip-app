@@ -1,9 +1,9 @@
-import { firebaseConfig, tripDocumentPath } from "./firebase-config.js?v=v-2a593c8ad96c";
-import { getGooglePlaceLinks } from "./google-place-links.js?v=v-2a593c8ad96c";
-import { buildGoogleMapsUrl, normalizeGoogleMapsUrl } from "./map-links.js?v=v-2a593c8ad96c";
-import { optimizedPhotoUrl } from "./photo-assets.js?v=v-2a593c8ad96c";
-import { parseFullGoogleMapsPlaceUrl } from "./google-maps-place-url.js?v=v-2a593c8ad96c";
-import { computeReminders, remindersDueOnDate } from "./reminder-dates.js?v=v-2a593c8ad96c";
+import { firebaseConfig, tripDocumentPath } from "./firebase-config.js?v=v-7cf2776e77f3";
+import { getGooglePlaceLinks } from "./google-place-links.js?v=v-7cf2776e77f3";
+import { buildGoogleMapsUrl, normalizeGoogleMapsUrl } from "./map-links.js?v=v-7cf2776e77f3";
+import { optimizedPhotoUrl } from "./photo-assets.js?v=v-7cf2776e77f3";
+import { parseFullGoogleMapsPlaceUrl } from "./google-maps-place-url.js?v=v-7cf2776e77f3";
+import { computeReminders, remindersDueOnDate } from "./reminder-dates.js?v=v-7cf2776e77f3";
 import {
   getInitialLanguage,
   languageStorageKey,
@@ -11,7 +11,7 @@ import {
   localizeTrip,
   saveLanguage,
   ui
-} from "./i18n.js?v=v-2a593c8ad96c";
+} from "./i18n.js?v=v-7cf2776e77f3";
 import {
   DAY_FORECAST_LOCATIONS,
   fetchTripForecast,
@@ -19,9 +19,9 @@ import {
   localizeForecastLocation,
   weatherCodeIcon,
   weatherCodeKey
-} from "./weather-forecast.js?v=v-2a593c8ad96c";
-import { getFlightBookings } from "./flight-bookings.js?v=v-2a593c8ad96c";
-import { getDayArea, getDayGuide, getPlacePhoto } from "./daily-guide.js?v=v-2a593c8ad96c";
+} from "./weather-forecast.js?v=v-7cf2776e77f3";
+import { getFlightBookings } from "./flight-bookings.js?v=v-7cf2776e77f3";
+import { getDayArea, getDayGuide, getPlacePhoto } from "./daily-guide.js?v=v-7cf2776e77f3";
 
 const FIREBASE_SDK_VERSION = "12.15.0";
 const seedTrip = JSON.parse(document.getElementById("trip-data").textContent);

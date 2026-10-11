@@ -6,6 +6,6 @@
     "node": ">=18"
   },
   "scripts": {
-    "test": "node scripts/test-google-maps-place-url.mjs && node scripts/test-generator-safety.mjs && node scripts/test-trip-contract.mjs && node scripts/test-reminder-dates.mjs && node scripts/test-generator-isolation.mjs && node scripts/test-map-links.mjs && node scripts/test-map-rendering.mjs && node scripts/test-photo-assets.mjs && node scripts/test-service-worker.mjs && node scripts/audit-privacy.mjs ."
+    "test": "node scripts/test-google-maps-place-url.mjs && node scripts/test-generator-safety.mjs && node scripts/test-trip-contract.mjs && node scripts/test-reminder-dates.mjs && node scripts/test-generator-isolation.mjs && node scripts/test-map-links.mjs && node scripts/test-map-rendering.mjs && node scripts/test-photo-assets.mjs && node scripts/test-service-worker.mjs && node scripts/test-privacy-audit.mjs && node scripts/audit-privacy.mjs ."
   }
 }

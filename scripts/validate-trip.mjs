@@ -13,7 +13,7 @@ export const PLAN_TYPES = Object.freeze([
 
 const PERIODS = new Set(["morning", "noon", "evening"]);
 const PLAN_TYPE_SET = new Set(PLAN_TYPES);
-const FORBIDDEN_KEY = /(?:confirmation(?:number|code)?|booking(?:reference|code)|passport|ticketnumber|cardnumber|securitycode|cvv|privatekey|serviceaccount|clientemail)/i;
+const FORBIDDEN_KEY = /(?:confirmation(?:number|code)?|booking(?:reference|code)|passport|ticketnumber|cardnumber|securitycode|cvv|privatekey|serviceaccount|clientemail|clientsecret|refreshtoken|accesstoken|idtoken|authtoken|bearertoken|sessiontoken|secretaccesskey|password|credential)/i;
 const FIREBASE_WEB_CONFIG_KEYS = new Set(["apiKey", "authDomain", "projectId", "storageBucket", "messagingSenderId", "appId", "measurementId"]);
 const STRUCTURAL_TRANSLATION_KEYS = new Set([
   "id", "slug", "title", "date", "startDate", "endDate", "timezone", "period", "planType",
@@ -24,6 +24,13 @@ const HEX_COLOR = /^#[0-9a-f]{6}$/i;
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const ID = /^[a-z0-9][a-z0-9_-]{0,79}$/i;
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+// Shared by the input validator and working-tree audit; casing/separators must
+// not turn a credential into an allowed custom field. Public web apiKey is not
+// a credential by itself, and remains allowed by the Firebase config allowlist.
+export function isSensitiveKey(key) {
+  return FORBIDDEN_KEY.test(String(key).replace(/[^a-z0-9]/gi, ""));
+}
 
 export function validateTrip(input, options = {}) {
   const errors = [];
@@ -352,8 +359,7 @@ function scanSensitiveData(value, location, error) {
   if (!isPlainObject(value)) return;
   Object.entries(value).forEach(([key, child]) => {
     const next = `${location}.${key}`;
-    const normalizedKey = key.replace(/[^a-z0-9]/gi, "");
-    if (FORBIDDEN_KEY.test(normalizedKey)) error(next, "do not put booking codes, identity documents, payment-card data, service accounts, or private keys in the app");
+    if (isSensitiveKey(key)) error(next, "do not put booking codes, identity documents, payment-card data, credentials, service accounts, or private keys in the app");
     scanSensitiveData(child, next, error);
   });
 }

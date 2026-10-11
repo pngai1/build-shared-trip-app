@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#183449">
+  <meta name="description" content="An interface showcase for an agent-ready travel app framework. Explore its desktop workspace, swipeable phone planner, and fictional local demo.">
+  <title>Interface showcase · Build Shared Trip App</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="showcase.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header wrap">
+    <a class="wordmark" href="../README.md" aria-label="Build Shared Trip App repository overview">
+      <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none"><path d="m7 29 9-16 7 11 4-6 7 11H7Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M27 5v8m-4-4h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+      <span>Shared Trip App<small>Agent framework / interface reference</small></span>
+    </a>
+    <nav aria-label="Main navigation">
+      <a href="#desktop">Desktop</a>
+      <a href="#phone">Phone</a>
+      <a class="nav-agent" href="../SKILL.md">Agent entry <span aria-hidden="true">↗</span></a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero wrap">
+      <div class="hero-copy">
+        <p class="eyebrow"><span></span> Designed around the journey</p>
+        <h1>One itinerary.<br><em>Every screen.</em></h1>
+        <p class="intro">A shared travel app that gives the map room to breathe, keeps the next stop close, and feels at home on your phone.</p>
+        <div class="actions">
+          <a class="button primary" href="../docs/">Explore the sample app <span aria-hidden="true">↗</span></a>
+          <a class="text-link" href="../references/agent-setup.md">Build it with your agent <span aria-hidden="true">→</span></a>
+        </div>
+        <p class="demo-note">Fictional itinerary · local-only edits · no account setup</p>
+      </div>
+      <aside class="hero-details" aria-label="Framework capabilities">
+        <p class="detail-heading">THE SAME TRIP, BEAUTIFULLY CONNECTED</p>
+        <div><span class="detail-number">01</span><p><strong>Map + timeline</strong><span>Two views of the same day's plan.</span></p></div>
+        <div><span class="detail-number">02</span><p><strong>Four languages</strong><span>One app identity, wherever you go.</span></p></div>
+        <div><span class="detail-number">03</span><p><strong>Your own deployment</strong><span>Reusable source. Your account and data.</span></p></div>
+      </aside>
+    </section>
+
+    <section class="desktop-section wrap" id="desktop" aria-labelledby="desktop-heading">
+      <div class="section-heading">
+        <div><p class="eyebrow">01 / Desktop workspace</p><h2 id="desktop-heading">A wider view of the day.</h2></div>
+        <p>Explore the map without losing the itinerary. Every marker and plan belongs to the same ordered story.</p>
+      </div>
+      <div class="browser-frame">
+        <div class="browser-toolbar">
+          <div class="window-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+          <span class="window-title">Winter, from the Alps to Paris</span>
+          <div class="view-controls" aria-label="Desktop screenshot view">
+            <button type="button" class="active" aria-pressed="true" data-view="itinerary">Itinerary</button>
+            <button type="button" aria-pressed="false" data-view="overview">Overview</button>
+          </div>
+        </div>
+        <img id="desktop-capture" class="desktop-capture" src="desktop-itinerary.jpg" width="1280" height="720" alt="Desktop itinerary: timeline on the left, a large map of the selected day's stops on the right">
+      </div>
+      <div class="capture-caption"><span class="caption-label">REAL APPLICATION CAPTURE</span><p id="desktop-caption">A substantial, sticky map beside the selected day's timeline.</p></div>
+      <div class="feature-strip">
+        <p><span>Organized</span><strong>One day at a time.</strong> Flights, stays, food, and sights live together.</p>
+        <p><span>Uncluttered</span><strong>Details when needed.</strong> Open a plan, a forecast, or nearby ideas.</p>
+        <p><span>Connected</span><strong>From plan to place.</strong> Follow a stop on the map or open its place link.</p>
+      </div>
+    </section>
+
+    <section class="phone-section" id="phone" aria-labelledby="phone-heading">
+      <div class="wrap phone-layout">
+        <div class="phone-copy">
+          <p class="eyebrow">02 / Phone planner</p>
+          <h2 id="phone-heading">More map.<br>More plan.<br><em>Your call.</em></h2>
+          <p>Move the handle with a swipe to shift the balance. Dates stay in the panel, the itinerary scrolls naturally, and the map stays within reach.</p>
+          <div class="gesture-key"><span aria-hidden="true">↕</span><p><strong>Swipe, don't tap.</strong><br>Three sheet positions. No accidental resizing.</p></div>
+          <a class="text-link light-link" href="../docs/?view=plan">Open the sample planner <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="phones">
+          <figure>
+            <div class="phone-frame"><img src="phone-itinerary.jpg" width="390" height="844" alt="Phone planner showing the itinerary panel balanced below the map" loading="lazy"></div>
+            <figcaption><span>01</span> The day's plan</figcaption>
+          </figure>
+          <figure class="second-phone">
+            <div class="phone-frame"><img src="phone-map-expanded.jpg" width="390" height="844" alt="The same phone planner after lowering its itinerary panel to expose more map" loading="lazy"></div>
+            <figcaption><span>02</span> Room to explore</figcaption>
+          </figure>
+        </div>
+      </div>
+      <p class="phone-context wrap">Phone captures use a 390 × 844 responsive browser viewport. They demonstrate the layout, not a physical-iPhone installation test.</p>
+    </section>
+
+    <section class="handoff wrap" aria-labelledby="handoff-heading">
+      <div>
+        <p class="eyebrow">03 / From reference to your trip</p>
+        <h2 id="handoff-heading">Bring an itinerary.<br>Your agent builds the rest.</h2>
+        <p>The reusable skill includes the application source, structured input contract, generator, tests, and deployment guide. Theme it for the next journey without rebuilding the interactions.</p>
+        <a class="button primary" href="../SKILL.md">Read the agent workflow <span aria-hidden="true">↗</span></a>
+      </div>
+      <ol class="handoff-list">
+        <li><span>01</span><a href="../references/agent-setup.md"><strong>Set up your agent</strong><small>Codex and Claude instructions</small></a></li>
+        <li><span>02</span><a href="../references/input-schema.md"><strong>Structure the trip</strong><small>Verified places, plans, language, and theme</small></a></li>
+        <li><span>03</span><a href="../references/responsive-performance.md"><strong>Preview and verify</strong><small>Desktop, phone, interactions, and performance</small></a></li>
+        <li><span>04</span><a href="../references/firebase-deployment.md"><strong>Deploy with approval</strong><small>A separate user-owned Firebase project</small></a></li>
+      </ol>
+    </section>
+
+    <section class="scope-note wrap" aria-label="About these examples">
+      <span class="scope-icon" aria-hidden="true">i</span>
+      <div><h3>A showcase, not a shared trip link.</h3><p>The screenshots retain approved trip branding and dates. The interactive sample is a separate fictional trip with local-only edits and no live synchronization. No production app URL or backend configuration is included. <a href="README.md">Capture context and verification notes →</a></p></div>
+    </section>
+  </main>
+
+  <footer class="site-footer wrap"><span>Build Shared Trip App</span><span>Reusable by design. Personal to each journey.</span><a href="../README.md">Repository guide <span aria-hidden="true">↗</span></a></footer>
+</body>
+</html>

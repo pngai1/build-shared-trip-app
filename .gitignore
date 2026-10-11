@@ -10,3 +10,11 @@ output/
 service-account*.json
 *-service-account.json
 firebase-admin*.json
+application_default_credentials.json
+*serviceAccount*.json
+*.pem
+*.key
+*.p12
+*.pfx
+.privacy-denylist*
+*.bundle

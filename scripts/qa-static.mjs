@@ -123,7 +123,7 @@ for (const test of [
   if (result.status !== 0) fail(`${filename} failed: ${(result.stderr || result.stdout).trim()}`);
 }
 
-const privacy = spawnSync(process.execPath, [path.join(scriptDirectory, "audit-privacy.mjs"), root], { encoding: "utf8" });
+const privacy = spawnSync(process.execPath, [path.join(scriptDirectory, "audit-privacy.mjs"), root, "--mode", "app"], { encoding: "utf8" });
 if (privacy.status !== 0) fail(`privacy audit failed:\n${(privacy.stderr || privacy.stdout).trim()}`);
 
 if (failures.length) {

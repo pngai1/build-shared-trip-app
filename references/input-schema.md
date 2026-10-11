@@ -315,6 +315,8 @@ Use direct Apple App Store links. Do not recommend Maps, Weather, or Translate w
 
 `firebaseConfig` is the public Firebase web-app configuration, not a service account. Only these keys are allowed: `apiKey`, `authDomain`, `projectId`, `storageBucket`, `messagingSenderId`, `appId`, and optional `measurementId`.
 
+Set `sync.firestoreRegion` to the location selected when creating the project's default Firestore database. The generator's fallback is `nam5`; it does not discover an existing database's region. See [firebase-deployment.md](firebase-deployment.md) before configuring or deploying a backend.
+
 Use an unguessable two-segment `documentPath`. Preserve it when regenerating the same trip. A missing path is generated randomly and written into the generated `trip-input.json` build record.
 
 ## Validation

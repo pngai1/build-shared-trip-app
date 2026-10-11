@@ -1,51 +1,61 @@
-# One app, two interfaces
+# One itinerary. Every screen.
 
-Captured from the existing winter-trip app on October 10, 2026. These are rendered application screenshots, not generated mockups. Only static previews are included here; the live shared-edit URL, private input documents, and Firebase configuration are intentionally not bundled.
+A visual reference for the shared-trip framework: a spacious desktop workspace and an iOS-oriented planner that puts the map behind a swipeable itinerary sheet.
 
-## Website overview
+**[Agent instructions](../SKILL.md)** · [Feature contract](../references/feature-contract.md) · [Fictional demo](../docs/) · [Showcase page source](index.html)
 
-A compact header leads into the full-width checklist and the horizontal forecast slider. The checklist does not stretch to match weather height, and its edges align with the weather panel. The plan-change timestamp is in the footer.
+To view the designed gallery, run `python3 -m http.server 4173 --bind 127.0.0.1` from the repository root and open [localhost:4173/showcase/](http://localhost:4173/showcase/). Python 3 is required for that preview command.
+
+## Desktop / room to explore
+
+The selected day's timeline and a large sticky map share the workspace. Selecting a plan focuses its marker; selecting a marker opens its plan. A compact header, aligned checklist, and all-date forecast strip keep the trip overview easy to scan.
+
+![Desktop timeline and substantial map](desktop-itinerary.jpg)
+
+<details>
+<summary>Show the compact desktop overview</summary>
 
 ![Compact desktop overview](desktop-overview.jpg)
 
-December dates are outside the forecast window at capture time, so the cards correctly show “Forecast not available yet.” These are not fabricated forecasts.
+</details>
 
-## Website itinerary
+## Phone / the map and plan, in balance
 
-The selected day's timeline and a large sticky map share the workspace. Opening a plan or selecting a marker connects the two views. Desktop controls remain readable without taking space away from map exploration.
+Dates stay inside the rounded sheet. A vertical swipe changes its height; a tap on the handle does not. The itinerary scrolls separately, and the map reframes after the sheet moves.
 
-![Desktop map and timeline](desktop-itinerary.jpg)
-
-## iOS-oriented web app
-
-The dedicated phone planner puts the map behind a rounded itinerary sheet, with date selection inside the sheet. Swipe its handle down for more map, or up for more itinerary. Tapping the handle alone does not resize it.
-
-<p>
-  <img src="phone-itinerary.jpg" width="300" alt="Phone itinerary sheet at its initial position">
-  <img src="phone-map-expanded.jpg" width="300" alt="Phone itinerary sheet lowered to expose the map">
+<p align="center">
+  <img src="phone-itinerary.jpg" width="250" alt="Phone planner in the balanced itinerary position">
+  &nbsp;&nbsp;
+  <img src="phone-map-expanded.jpg" width="250" alt="Phone planner lowered to reveal the map">
 </p>
 
-The homepage stays compact, with language, payments/apps, trip notes, and sync information in the footer:
+<details>
+<summary>Show the compact phone homepage</summary>
 
-<img src="phone-overview.jpg" width="300" alt="Compact phone homepage">
+<img src="phone-overview.jpg" width="300" alt="Phone overview with compact checklist and forecast cards">
 
-## What these previews establish
+</details>
 
-- Desktop capture: default browser viewport, approximately 1280 × 720.
-- Phone capture: 390 × 844 responsive browser viewport.
-- The phone sheet was moved with a drag gesture for the map-focused capture.
-- No screenshots claim a physical-device install test. Safari's Add to Home Screen flow, keyboard, date picker, safe-area behavior, and installed-PWA chrome must be checked on an actual iPhone.
-- These implementation screenshots are illustrative. The reproducible repository demo in [`../docs/`](../docs/) contains a separate fictional trip and local-only edits, not this trip's data or live synchronization.
+## What you are seeing
 
-For a reproducible tour, run the fictional demo, explore the desktop map, narrow the browser to a phone width, choose **Open interactive plan**, and swipe the sheet handle. The [feature contract](../references/feature-contract.md) defines the behaviors future trips must preserve.
+| | Implementation screenshots | Reproducible demo |
+| --- | --- | --- |
+| Content | Approved winter-trip branding, dates, and destinations | Fictional **Tide Lines** itinerary |
+| Format | Actual browser captures, taken October 10, 2026 | Generated application in [`../docs/`](../docs/) |
+| Backend | Not included or linked | No live backend; local preview edits only |
+| Phone | 390 × 844 responsive viewport | Resize the browser and open the interactive plan |
+| Forecast | Unavailable at capture time for the future trip dates | Future fictional dates may have no forecast data |
 
-## Framework verification — October 10, 2026
+The gallery is not a physical-iPhone installation test. Safari's Add to Home Screen flow, operating-system date picker, keyboard, and installed-app safe areas still require real-device verification.
 
-- All nine regression groups and the repository privacy scan passed; a fresh generated app also passed static QA.
-- The optional photo optimizer passed resizing, download-limit, local-asset, credit-preservation, and cached-preview tests using fixture images.
-- Desktop and phone-width English, Simplified Chinese, Traditional Chinese, and Japanese views kept the same checklist height (62 px desktop, 78 px phone) without horizontal page overflow.
-- The phone date input fit inside its dialog. A handle tap left the sheet at the same position; a drag lowered it while its bottom remained flush with the viewport.
-- The rebuilt demo loaded under `/docs/`, including local preview images, date navigation, and weather dialogs. Narrow-phone navigation stayed inside that subpath, with no captured console warnings or errors.
-- Service-worker tests verified root/subpath asset scope, retention of other applications' caches, and zero background fetches for warm versioned modules and local previews.
+## Verification record
 
-Not re-tested in this framework update: physical-iPhone installation, operating-system UI, two-device Firebase edits, or an actual offline browser session. The demo has no live Firebase backend, and its distant forecast dates have no forecast data yet.
+The framework update captured on October 10, 2026 passed the regression suite and privacy scan, fresh generation/static QA, and optional photo-optimizer fixture tests. Browser checks covered:
+
+- Four-language desktop and phone layouts without horizontal overflow.
+- Compact checklist sizing, contained phone date input, and weather dialogs.
+- Swipe-only sheet movement, with the bottom remaining flush to the viewport.
+- The fictional demo under `/docs/`, including local images and date navigation.
+- Service-worker asset scope and retention of unrelated application caches in automated tests.
+
+Not re-tested for those captures: physical-iPhone installation, two-device Firebase synchronization, or an actual offline browser session. Follow the [responsive/performance guide](../references/responsive-performance.md) and [deployment verification](../references/firebase-deployment.md) for every new trip.

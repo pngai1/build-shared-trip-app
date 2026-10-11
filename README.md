@@ -1,81 +1,75 @@
 # Build Shared Trip App
 
-Turn an itinerary, booking notes, and optional Google Maps place links into a polished, synchronized, multilingual travel PWA.
+**An agent-ready framework for turning a trip itinerary into a shared, multilingual travel app.**
 
-The root README is for people browsing the repository. AI agents should follow [`SKILL.md`](SKILL.md).
+Provide the itinerary. Your agent researches the missing details, adapts the visual theme, and builds a responsive PWA with the same desktop and phone interactions shown below. The application runs independently of the agent that created it.
 
-## Desktop and iPhone interface
+**[Agent entry point → SKILL.md](SKILL.md)** · [Setup for Codex & Claude](references/agent-setup.md) · [Interface showcase](showcase/README.md) · [Input contract](references/input-schema.md)
 
-The same responsive application uses a spacious map-and-timeline layout on desktop and a map behind a swipeable itinerary sheet on phones. These screenshots show the current **Winter, from the Alps to Paris** implementation; its private itinerary data and backend configuration are not included in the template.
+## Start here, agents
 
-![Desktop itinerary with a large sticky map](showcase/desktop-itinerary.jpg)
+Read [`SKILL.md`](SKILL.md) first. It defines the workflow, required reference files, privacy boundaries, and verification gates. Do not infer a real trip from the showcase screenshots or deploy without the user's approval.
 
-<p>
-  <img src="showcase/phone-itinerary.jpg" width="260" alt="Phone-width itinerary over the map">
-  <img src="showcase/phone-map-expanded.jpg" width="260" alt="Swipe the sheet down to reveal more of the map">
+Give your agent this task, together with the itinerary or trip documents:
+
+```text
+Read SKILL.md and follow build-shared-trip-app for the attached itinerary.
+Preserve the framework's desktop map and swipe-only phone planner.
+Adapt the colors, icon, and literal app name to our trip's theme.
+Prepare English, Simplified Chinese, Traditional Chinese, and Japanese.
+Keep uncertain details visibly pending; do not invent bookings or place IDs.
+Show desktop and phone-width previews, and report the checks performed.
+Prepare a separate Firebase project, but ask before deploying.
+```
+
+| Stage | Agent reference | Result |
+| --- | --- | --- |
+| 1 · Understand | [Research & content](references/research-and-content.md) | Verified itinerary; explicit unknowns |
+| 2 · Structure | [Input schema](references/input-schema.md) · [Fictional example](assets/trip.example.json) | Complete multilingual trip JSON |
+| 3 · Generate | [Agent workflow](SKILL.md) · [Feature contract](references/feature-contract.md) | Self-contained application folder |
+| 4 · Verify | [Responsive & performance checks](references/responsive-performance.md) | Tested desktop and phone previews |
+| 5 · Deploy | [Firebase setup](references/firebase-deployment.md) | User-owned hosting and synchronization |
+
+## The interface
+
+The desktop workspace balances an ordered itinerary with a substantial, sticky map. The phone planner uses that same itinerary inside a swipeable sheet: pull it down to explore the map, or up to read the plan.
+
+![Desktop itinerary and large map](showcase/desktop-itinerary.jpg)
+
+<p align="center">
+  <img src="showcase/phone-itinerary.jpg" width="250" alt="Phone planner with the itinerary sheet open">
+  &nbsp;&nbsp;
+  <img src="showcase/phone-map-expanded.jpg" width="250" alt="Phone planner with its sheet lowered to reveal more map">
 </p>
 
-The phone images are **390 × 844 browser viewport previews**, not screenshots from a physical iPhone. They demonstrate the iOS-oriented layout and swipe interaction; installation and operating-system safe areas still require a real-device check. [See the full showcase and verification notes](showcase/README.md).
+These are real rendered views of the winter-trip implementation. Phone images were captured at **390 × 844 in a responsive browser**, not on a physical iPhone. The screenshots are visual references; their itinerary and backend are not the generator's sample data.
 
-The latest template includes:
+**[Full gallery & verification notes](showcase/README.md)** · [Showcase page source](showcase/index.html)
 
-- A compact, full-width checklist above the all-date weather slider—aligned edges without an empty stretched card.
-- A tighter header and the plan-change timestamp in the footer.
-- A larger desktop map while retaining the phone's swipe-only bottom sheet.
-- Reused map layers, lazy recommendations, bounded photo previews, and cache-first versioned assets.
-- Recovery for legacy malformed Maps links, without fabricating venue identifiers.
+### Included in every trip
 
-## Example
+- **One coordinated plan:** flights, stays, transport, restaurants, and sights in a single editable timeline, with optional Maps links and placeholder plans.
+- **Useful trip context:** date-flexible to-dos, an all-date forecast strip with hourly detail dialogs, and nearby eat / see / buy ideas.
+- **Four languages:** English, Simplified Chinese, Traditional Chinese, and Japanese, with a literal, untranslated app name.
+- **A shared, installable app:** Firebase-backed edits, a PWA home-screen experience, and an offline-readable itinerary shell. Maps, weather, and remote photos may still require a connection.
 
-[`docs/`](docs/) contains **Tide Lines**, a fictional two-day coastal trip generated from [`assets/trip.example.json`](assets/trip.example.json). It demonstrates the real interface without exposing travelers, reservations, credentials, or private links.
+## Explore the fictional demo
 
-Preview it locally:
+[`docs/`](docs/) contains **Tide Lines**, a fictional two-day trip generated from [`assets/trip.example.json`](assets/trip.example.json). It uses **local-only preview storage**, not a Firebase backend. Edits in this demo do not synchronize between devices.
 
-```bash
-python3 -m http.server 4173 --directory docs
-```
-
-Then open [http://localhost:4173](http://localhost:4173). The checked-in demo uses local-preview storage rather than a Firebase backend, so it does not claim live multi-device synchronization.
-
-The `docs/` output uses relative paths so it can be served below a repository path as well as at the site root. Publishing GitHub Pages is intentionally left off because Pages visibility is separate from this private repository's visibility.
-
-Regenerate the checked-in demo after template or example-data changes:
+With Python 3 installed, run this from the repository root:
 
 ```bash
-node scripts/build-docs-demo.mjs
+python3 -m http.server 4173 --bind 127.0.0.1
 ```
 
-## What it builds
+Open **[the showcase](http://localhost:4173/showcase/)** or **[the interactive demo](http://localhost:4173/docs/)**. To preview the phone planner, narrow the browser and choose **Open interactive plan**.
 
-- A responsive itinerary with a large desktop map and a swipe-only mobile bottom sheet
-- Flights, stays, restaurants, transport, and POIs in one chronological timeline
-- English, Simplified Chinese, Traditional Chinese, and Japanese UI and trip content
-- Date-flexible checklist with due items surfaced in each itinerary day
-- Compact all-date weather slider with icon-opened hourly detail dialogs
-- Exact Google Maps place links when supplied, plus timeline-only placeholder plans
-- Nearby eat, see/go, and buy ideas for every day
-- Firebase anonymous synchronization without an account screen
-- Installable PWA shell with offline itinerary support
+No hosted demo is implied by these links. GitHub Pages is not enabled by this guide; publication requires a separate visibility decision.
 
-## Try the generator
+## Generate your own app
 
-Requirements: Node.js 18 or newer. Generation and validation use built-in Node modules. The optional local-photo optimizer also needs Sharp.
-
-```bash
-node scripts/validate-trip.mjs assets/trip.example.json --allow-example
-node scripts/init-trip.mjs assets/trip.example.json /tmp/tide-lines-demo --allow-example
-node scripts/qa-static.mjs /tmp/tide-lines-demo
-python3 -m http.server 4173 --directory /tmp/tide-lines-demo/public
-```
-
-Open [http://localhost:4173](http://localhost:4173) to explore the generated app.
-
-## Build a real trip
-
-1. Copy [`assets/trip.example.json`](assets/trip.example.json) to a separate working file.
-2. Replace every sample field with verified trip data and remove `sampleData`.
-3. Follow [`references/input-schema.md`](references/input-schema.md) for the input contract.
-4. Validate, generate, and run static QA:
+The generator requires **Node.js 18+** and uses built-in modules. Copy the fictional input to a private working location, replace its content, and remove `sampleData`. Follow the [input contract](references/input-schema.md), then run:
 
 ```bash
 node scripts/validate-trip.mjs /absolute/path/to/trip.json
@@ -83,49 +77,40 @@ node scripts/init-trip.mjs /absolute/path/to/trip.json /absolute/path/to/output
 node scripts/qa-static.mjs /absolute/path/to/output
 ```
 
-For synchronized editing and hosting, follow [`references/firebase-deployment.md`](references/firebase-deployment.md). Use a new Firestore document for every trip and never put reservation codes, identity documents, payment data, service-account credentials, or private Drive links into the public app.
-
-For a photo-heavy trip, generate small local previews before deployment:
-
-```bash
-# Sharp must be available in the tool environment; alternatively set CODEX_NODE_MODULES.
-node scripts/optimize-photos.mjs /absolute/path/to/output
-node scripts/bump-cache.mjs /absolute/path/to/output
-node scripts/qa-static.mjs /absolute/path/to/output
-```
-
-Review `public/photos/optimization-report.json` for failures and size totals. The optimizer retains the original source and credit records; it does not grant image reuse rights. Without local previews, the app requests bounded thumbnails from supported image hosts.
-
-## Use it as an agent skill
-
-Clone or copy the repository as one skill directory, then invoke `$build-shared-trip-app` with an itinerary, trip documents, or destination and dates. The trigger metadata is in [`SKILL.md`](SKILL.md), with Codex UI metadata in [`agents/openai.yaml`](agents/openai.yaml).
-
-An example request:
-
-> Use build-shared-trip-app with the attached itinerary. Preserve this framework's desktop and mobile interactions, adapt the colors and icon to our trip theme, and prepare English, Simplified Chinese, Traditional Chinese, and Japanese. Keep uncertain bookings marked as pending. Show me desktop and phone-width previews before deploying.
-
-The core instructions, JSON schema, and Node scripts are also usable by Claude: ask it to read `SKILL.md` first and follow the linked references. No Codex-specific runtime is required by the generated app.
-
-## Verify a framework update
+For a no-account-setup trial, use the included fixture and a fresh output folder:
 
 ```bash
 node scripts/validate-trip.mjs assets/trip.example.json --allow-example
-node scripts/init-trip.mjs assets/trip.example.json /tmp/shared-trip-check --allow-example
-node scripts/qa-static.mjs /tmp/shared-trip-check
-node scripts/audit-privacy.mjs .
-node scripts/build-docs-demo.mjs
+node scripts/init-trip.mjs assets/trip.example.json /tmp/tide-lines-demo --allow-example
+node scripts/qa-static.mjs /tmp/tide-lines-demo
 ```
 
-Use a fresh output directory, then follow the [responsive and performance checklist](references/responsive-performance.md). The generated sample is deliberately small and fictional; live Firebase synchronization, installation, and real-device iOS behavior are separate checks, not implied by static tests.
+The [agent setup guide](references/agent-setup.md) covers installation and handoff. The [Firebase guide](references/firebase-deployment.md) covers the separate CLI requirements, project setup, region, authentication, rules, and deployment. Colleagues must use **their own account, project, and trip data**.
 
-## Repository layout
+For photo-heavy trips, the optional [photo optimizer](references/responsive-performance.md) produces small local previews. It needs Sharp and preserves source/credit records; it does not grant image reuse rights.
 
-| Path | Purpose |
+## Sharing & access boundaries
+
+The reusable template and fictional demo must not contain live backend configuration, source-document links, reservation codes, or credentials. Approved showcase images may show trip branding, dates, and destinations. Never copy private source documents into a generated public app.
+
+A deployed app's anonymous synchronization is **link-based trust, not private membership control**. Anyone who can access that app may be able to edit it. Do not use the default model for sensitive travel records without adding appropriate access controls. See the [deployment guide](references/firebase-deployment.md) and [sharing & privacy checklist](references/sharing-and-privacy.md).
+
+## Maintain the framework
+
+```bash
+npm test
+node scripts/build-docs-demo.mjs
+node scripts/qa-static.mjs /absolute/path/to/fresh-generated-output
+```
+
+Run generation against a fresh folder before the final command. Rebuild the checked-in demo whenever its input or application template changes. Static tests do not replace desktop/phone interaction checks, physical-iPhone installation tests, or two-device Firebase verification.
+
+| Location | Purpose |
 | --- | --- |
-| [`SKILL.md`](SKILL.md) | Agent workflow and quality rules |
-| [`assets/app-template/`](assets/app-template/) | Reusable Firebase/PWA application template |
-| [`assets/trip.example.json`](assets/trip.example.json) | Fictional multilingual input example |
-| [`scripts/`](scripts/) | Validation, generation, QA, privacy, cache, and parser tools |
-| [`references/`](references/) | Input schema, feature contract, research, and deployment guidance |
-| [`docs/`](docs/) | Generated fictional example page for local preview or GitHub Pages |
-| [`showcase/`](showcase/) | Desktop and phone-width screenshots, with capture context |
+| [`SKILL.md`](SKILL.md) · [`agents/`](agents/) | Agent instructions and discovery metadata |
+| [`references/`](references/) | Setup, input, content, UI, performance, and deployment contracts |
+| [`assets/app-template/`](assets/app-template/) | Reusable application source |
+| [`assets/trip.example.json`](assets/trip.example.json) | Fictional multilingual input fixture |
+| [`scripts/`](scripts/) | Generation, validation, tests, privacy, photo, and cache tools |
+| [`docs/`](docs/) | Reproducible fictional app |
+| [`showcase/`](showcase/) | Professional gallery and approved implementation screenshots |

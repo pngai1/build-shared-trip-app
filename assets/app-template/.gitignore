@@ -1,0 +1,34 @@
+# Local tools, dependencies, and build/deployment state.
+.DS_Store
+node_modules/
+.firebase/
+.firebaserc
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
+dist/
+
+# Keep credentials out of both Git and public/ (Hosting uploads public/).
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+service-account*.json
+*-service-account.json
+*serviceAccount*.json
+firebase-admin*.json
+application_default_credentials.json
+
+# Original bookings and authoring material stay local by default.
+# public/ still contains the sanitized itinerary shown by the app.
+trip-input.json
+source/
+sources/
+private/
+private-source/
+private-sources/
+.privacy-denylist*
+*.bundle
