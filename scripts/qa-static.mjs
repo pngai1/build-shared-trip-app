@@ -111,6 +111,18 @@ if (reminderDates.status !== 0) fail(`reminder date tests failed: ${(reminderDat
 const tripContract = spawnSync(process.execPath, [path.join(scriptDirectory, "test-trip-contract.mjs")], { encoding: "utf8" });
 if (tripContract.status !== 0) fail(`trip contract tests failed: ${(tripContract.stderr || tripContract.stdout).trim()}`);
 
+for (const test of [
+  ["test-generator-isolation.mjs", []],
+  ["test-map-links.mjs", [root]],
+  ["test-map-rendering.mjs", [root]],
+  ["test-photo-assets.mjs", [root]],
+  ["test-service-worker.mjs", [root]]
+]) {
+  const [filename, arguments_] = test;
+  const result = spawnSync(process.execPath, [path.join(scriptDirectory, filename), ...arguments_], { encoding: "utf8" });
+  if (result.status !== 0) fail(`${filename} failed: ${(result.stderr || result.stdout).trim()}`);
+}
+
 const privacy = spawnSync(process.execPath, [path.join(scriptDirectory, "audit-privacy.mjs"), root], { encoding: "utf8" });
 if (privacy.status !== 0) fail(`privacy audit failed:\n${(privacy.stderr || privacy.stdout).trim()}`);
 

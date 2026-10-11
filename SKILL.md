@@ -35,7 +35,7 @@ Treat every new trip as a clean-room build. Never carry itinerary content, trave
    node scripts/qa-static.mjs /absolute/path/to/output
    ```
 
-9. Read [feature-contract.md](references/feature-contract.md). Serve the generated `public/` directory locally and verify the desktop and iPhone layouts, all languages, exact map markers, dialogs, weather states, offline shell, and swipe-only itinerary sheet.
+9. Read [feature-contract.md](references/feature-contract.md) and [responsive-performance.md](references/responsive-performance.md). Serve the generated `public/` directory locally and verify the desktop and iPhone layouts, all languages, exact map markers, dialogs, weather states, offline shell, and swipe-only itinerary sheet. Save separate desktop and phone-width screenshots; label emulation honestly.
 10. If Firebase synchronization or deployment is requested, read [firebase-deployment.md](references/firebase-deployment.md). Deploy only to the explicitly chosen Firebase project and only after local QA passes.
 
 ## Authoring rules
@@ -49,7 +49,11 @@ Treat every new trip as a clean-room build. Never carry itinerary content, trave
 - Use participant groups. If everyone attends, omit participant groups from that plan so the UI shows no redundant “Everyone” chip.
 - Never include reservation codes, confirmation numbers, ticket numbers, passport data, payment-card data, service accounts, private keys, or private document links in the public app.
 - Keep user-facing copy traveler-focused. Do not add implementation explanations, account-model prose, citations in content cards, or developer notes to the interface.
-- Preserve the default deer branding unless the user supplies replacement icons. Keep `shortName` concise because iOS controls the home-screen label font and truncation.
+- Preserve the chosen trip branding consistently in the header, manifest, favicon, and install icons. For a new theme, adapt colors and icons only within the user's request; otherwise keep the supplied default. Keep `shortName` concise because iOS controls the home-screen label font and truncation.
+- Preserve the compact full-width checklist above the all-date weather slider. Do not stretch a closed checklist to match weather height or put blank filler in it.
+- Keep the desktop map spacious and sticky while preserving the phone's map-background/swipe-sheet interface. Reuse the map instance; do not rebuild it on every render or metadata-only sync event.
+- Never invent a Google Maps place identifier or build `/maps/place/name/@coordinates` as though it were a verified venue. Repair legacy links with a verified venue URL; a named-search fallback is not an exact-place verification.
+- Use bounded thumbnails or local optimized previews, lazy-load images and collapsed recommendations, and keep source credits. Never load multi-megabyte originals into small cards.
 
 ## Iteration
 
@@ -62,6 +66,8 @@ node scripts/qa-static.mjs /absolute/path/to/output
 
 After changing trip content, update the authoring JSON and regenerate instead of hand-editing embedded seed data. Preserve the existing `sync.documentPath` when rebuilding the same shared trip.
 
+Template updates must change `assets/app-template/`, not only a generated trip. Run the regression tests, rebuild the fictional demo with `node scripts/build-docs-demo.mjs`, and repeat responsive QA. Never copy a real trip's seed, Firebase config, participant list, or service-worker cache key into the framework. A deployment does not overwrite an existing shared Firestore document: migrate live data deliberately only when the user requested a content change.
+
 ## Delivery
 
 Report:
@@ -69,6 +75,7 @@ Report:
 - generated app path and deployed URL, if any;
 - Firebase project and document path used, without presenting them as secrets;
 - QA performed and any live services not tested;
+- desktop and phone-width interface previews, distinguishing real-device testing from browser emulation;
 - assumptions or traveler facts still awaiting confirmation.
 
 Do not claim synchronization, weather, offline behavior, or install behavior was verified unless it was actually exercised.

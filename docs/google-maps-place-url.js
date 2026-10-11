@@ -1,6 +1,5 @@
 const NUMBER_PATTERN = "[+-]?(?:\\d+(?:\\.\\d+)?|\\.\\d+)";
 const DATA_COORDINATES_PATTERN = new RegExp(`!3d(${NUMBER_PATTERN})!4d(${NUMBER_PATTERN})(?=!|/|$)`, "g");
-const VIEW_COORDINATES_PATTERN = new RegExp(`@(${NUMBER_PATTERN}),(${NUMBER_PATTERN})(?:,|/|$)`);
 const PLACE_PATH_PATTERN = /^\/maps\/place\/([^/]+)/i;
 const MAX_GOOGLE_MAPS_URL_LENGTH = 4096;
 
@@ -60,13 +59,8 @@ function extractCoordinates(decodedPath) {
     if (validCoordinates(lat, lng)) return { lat, lng, source: "place" };
   }
 
-  const viewMatch = decodedPath.match(VIEW_COORDINATES_PATTERN);
-  if (!viewMatch) return null;
-  return {
-    lat: Number(viewMatch[1]),
-    lng: Number(viewMatch[2]),
-    source: "viewport"
-  };
+  // @lat,lng is the browser viewport, not necessarily the selected place.
+  return null;
 }
 
 function decodePlaceLabel(pathname) {
@@ -96,7 +90,7 @@ function validCoordinates(lat, lng) {
     && lng <= 180;
 }
 
-function isGoogleMapsHost(hostname) {
+export function isGoogleMapsHost(hostname) {
   const host = String(hostname || "").toLowerCase().replace(/\.$/, "");
   return /^(?:www\.|maps\.)?google\.(?:com|[a-z]{2,3}(?:\.[a-z]{2})?)$/.test(host);
 }

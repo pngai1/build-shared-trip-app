@@ -1,6 +1,6 @@
-import { UI_ZH_HANT } from "./translations-zh-hant.js?v=v-af917aee95a7";
-import { UI_ZH_HANS } from "./translations-zh-hans.js?v=v-af917aee95a7";
-import { UI_JA } from "./translations-ja.js?v=v-af917aee95a7";
+import { UI_ZH_HANT } from "./translations-zh-hant.js?v=v-2a593c8ad96c";
+import { UI_ZH_HANS } from "./translations-zh-hans.js?v=v-2a593c8ad96c";
+import { UI_JA } from "./translations-ja.js?v=v-2a593c8ad96c";
 
 const seedTrip = readSeedTrip();
 const LANGUAGE_STORAGE_KEY = `${seedTrip.slug || "shared-trip"}-language`;

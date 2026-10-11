@@ -64,7 +64,6 @@
         </div>
         <div class="hero-subline">
           <p class="hero-route" id="trip-route-decoration">__ROUTE_DECORATION_HTML__</p>
-          <p class="muted" id="last-updated" data-i18n="liveTripBoard">Live trip board</p>
         </div>
       </div>
     </div>
@@ -97,7 +96,6 @@
     <section class="itinerary" aria-labelledby="itinerary-title">
       <header class="itinerary-heading">
         <h2 class="itinerary-title" id="itinerary-title" data-i18n="itineraryTitle">Itinerary</h2>
-        <p class="itinerary-heading__note" data-i18n="oneDayAtATime">Choose a date to see that day’s plan. Today opens automatically during the trip.</p>
       </header>
 
       <a class="mobile-plan-launch" id="open-plan-view" href="?view=plan">
@@ -190,12 +188,16 @@
 
   <footer class="site-footer">
     <div class="footer-inner">
+      <div class="mobile-footer-tools" id="mobile-footer-tools"></div>
       <p data-i18n="anonymousFooter">If we get lost, the deer is officially our tour guide. 🦌</p>
       <div class="footer-attribution">
         <details class="footer-credits">
           <summary data-i18n="credits">Sources & photo credits</summary>
           <div class="footer-credits__list" id="credits-list"></div>
         </details>
+      </div>
+      <div class="mobile-footer-updated" id="mobile-footer-updated">
+        <p id="last-updated" data-i18n="liveTripBoard">Live trip board</p>
       </div>
     </div>
   </footer>
@@ -440,16 +442,24 @@ __TRIP_DATA_JSON__
 
     function initTravelMap(elementId, points, opts) {
       opts = opts || {};
-      var map = L.map(elementId, { zoomControl: false });
-      map.attributionControl.setPrefix(false);
-      L.control.zoom({
-        zoomInTitle: opts.zoomInTitle || 'Zoom in',
-        zoomOutTitle: opts.zoomOutTitle || 'Zoom out'
-      }).addTo(map);
-      L.tileLayer(opts.tileUrl || 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: opts.attribution || '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        maxZoom: 19
-      }).addTo(map);
+      var map = opts.existingMap;
+      if (!map) {
+        map = L.map(elementId, { zoomControl: false });
+        map.attributionControl.setPrefix(false);
+        map.tripZoomControl = L.control.zoom().addTo(map);
+        L.tileLayer(opts.tileUrl || 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: opts.attribution || '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+          maxZoom: 19,
+          updateWhenIdle: true
+        }).addTo(map);
+        map.tripLayers = L.layerGroup().addTo(map);
+      }
+      map.tripLayers.clearLayers();
+      var zoomButtons = map.tripZoomControl.getContainer().querySelectorAll('a');
+      [opts.zoomInTitle || 'Zoom in', opts.zoomOutTitle || 'Zoom out'].forEach(function (title, index) {
+        zoomButtons[index].title = title;
+        zoomButtons[index].setAttribute('aria-label', title);
+      });
 
       var popupInsets = opts.fitBoundsOptions || {};
       var popupTopLeft = popupInsets.paddingTopLeft || [30, 30];
@@ -472,7 +482,7 @@ __TRIP_DATA_JSON__
           + '<a target="_blank" rel="noopener noreferrer" href="' + escapeHTML(p.googleMapsUrl || buildGoogleMapsLink(p.lat, p.lng, p.name)) + '">'
           + escapeHTML(opts.googleMapsLabel || 'Open in Google Maps') + '</a>';
         var marker = L.marker([p.lat, p.lng], { icon: icon })
-          .addTo(map)
+          .addTo(map.tripLayers)
           .bindPopup(popupContent, popupOptions);
         if (typeof opts.onPointClick === 'function') {
           marker.on('click', function () { opts.onPointClick(p); });
@@ -487,12 +497,14 @@ __TRIP_DATA_JSON__
       }, {});
       Object.keys(routeGroups).forEach(function (key) {
         if (routeGroups[key].length > 1) {
-          L.polyline(routeGroups[key], { dashArray: '6 8', weight: 2, color: '#db7549' }).addTo(map);
+          L.polyline(routeGroups[key], { dashArray: '6 8', weight: 2, color: '#db7549' }).addTo(map.tripLayers);
         }
       });
       var fitOptions = Object.assign({ padding: [30, 30], maxZoom: 13, animate: false }, opts.fitBoundsOptions || {});
-      if (coords.length > 1) map.fitBounds(coords, fitOptions);
-      else if (coords.length === 1) map.setView(coords[0], opts.singlePointZoom || 12);
+      if (!opts.deferFrame) {
+        if (coords.length > 1) map.fitBounds(coords, fitOptions);
+        else if (coords.length === 1) map.setView(coords[0], opts.singlePointZoom || 12);
+      }
       return map;
     }
 

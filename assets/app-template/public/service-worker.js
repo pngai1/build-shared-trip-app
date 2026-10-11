@@ -1,4 +1,7 @@
-const CACHE_NAME = __CACHE_NAME_JSON__;
+const APP_BASE_URL = new URL("./", self.location.href);
+const CACHE_PREFIX = `shared-trip:${APP_BASE_URL.pathname}:`;
+const CACHE_NAME = CACHE_PREFIX + __CACHE_NAME_JSON__;
+const appUrl = (value) => new URL(value.replace(/^\.?\//, ""), APP_BASE_URL).href;
 const VERSIONED_RESOURCES_URL = "/resources.html?v=__CACHE_VERSION__";
 const LOCAL_SHELL = [
   "/",
@@ -6,6 +9,8 @@ const LOCAL_SHELL = [
   VERSIONED_RESOURCES_URL,
   "/styles.css?v=__CACHE_VERSION__",
   "/app.js?v=__CACHE_VERSION__",
+  "/photo-assets.js?v=__CACHE_VERSION__",
+  "/photos/manifest.js?v=__CACHE_VERSION__",
   "/resources.js?v=__CACHE_VERSION__",
   "/daily-guide.js?v=__CACHE_VERSION__",
   "/i18n.js?v=__CACHE_VERSION__",
@@ -36,9 +41,9 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(async (cache) => {
-        await cache.addAll(LOCAL_SHELL);
-        const resourcesPage = await cache.match(VERSIONED_RESOURCES_URL);
-        if (resourcesPage) await cache.put("/resources.html", resourcesPage.clone());
+        await cache.addAll(LOCAL_SHELL.map(appUrl));
+        const resourcesPage = await cache.match(appUrl(VERSIONED_RESOURCES_URL));
+        if (resourcesPage) await cache.put(appUrl("resources.html"), resourcesPage.clone());
         await Promise.allSettled(OPTIONAL_CDN_SHELL.map((url) => cache.add(url)));
       })
       .then(() => self.skipWaiting())
@@ -48,7 +53,7 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))))
+      .then((keys) => Promise.all(keys.filter((key) => key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME).map((key) => caches.delete(key))))
       .then(() => self.clients.claim())
   );
 });
@@ -57,33 +62,34 @@ self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
   const url = new URL(event.request.url);
-  const isAppShell = url.origin === self.location.origin;
+  const isAppShell = url.origin === self.location.origin && url.pathname.startsWith(APP_BASE_URL.pathname);
+  const appPath = isAppShell ? url.pathname.slice(APP_BASE_URL.pathname.length) : "";
   const isStaticCdn = ["unpkg.com", "www.gstatic.com"].includes(url.hostname)
     && ["script", "style"].includes(event.request.destination);
 
   if (!isAppShell && !isStaticCdn) return;
 
   const networkFirst = event.request.mode === "navigate"
-    || (isAppShell && url.pathname === "/firebase-config.js");
+    || (isAppShell && appPath === "firebase-config.js");
 
   if (networkFirst) {
     event.respondWith(
       fetch(event.request)
-        .then((response) => {
+        .then(async (response) => {
           if (response && response.ok) {
             const copy = response.clone();
             const cacheKey = event.request.mode === "navigate"
-              ? (url.pathname === "/" ? "/index.html" : url.pathname)
+              ? appUrl(appPath || "index.html")
               : event.request;
-            caches.open(CACHE_NAME).then((cache) => cache.put(cacheKey, copy));
+            await (await caches.open(CACHE_NAME)).put(cacheKey, copy);
           }
           return response;
         })
         .catch(() => caches.match(event.request).then((cached) => {
           if (cached) return cached;
           if (event.request.mode === "navigate") {
-            return caches.match(url.pathname === "/" ? "/index.html" : url.pathname)
-              .then((page) => page || caches.match("/index.html"));
+            return caches.match(appUrl(appPath || "index.html"))
+              .then((page) => page || caches.match(appUrl("index.html")));
           }
           return Promise.reject(new Error("Network and cached configuration are unavailable"));
         }))
@@ -93,15 +99,18 @@ self.addEventListener("fetch", (event) => {
 
   event.respondWith(
     caches.match(event.request).then((cached) => {
+      const versionedAsset = isAppShell && (url.searchParams.has("v")
+        || /^photos\/[a-f0-9]+\.webp$/.test(appPath));
+      if (cached && (versionedAsset || isStaticCdn)) return cached;
       const network = fetch(event.request)
-        .then((response) => {
+        .then(async (response) => {
           if (response && (response.ok || response.type === "opaque")) {
             const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+            await (await caches.open(CACHE_NAME)).put(event.request, copy);
           }
           return response;
         })
-        .catch(() => cached || (event.request.mode === "navigate" ? caches.match("/index.html") : undefined));
+        .catch(() => cached);
 
       return cached || network;
     })

@@ -4,19 +4,20 @@ Preserve these behaviors unless the user explicitly requests a design change.
 
 ## Header and main page
 
-- Show the literal app name once, on one line when the viewport permits, beside the deer icon.
+- Show the literal app name once, on one line when the viewport permits, beside the chosen trip icon.
 - Do not translate the app name.
 - Combine country and trip dates into one concise line.
 - Use localized decorative route/place names, not a redundant explanatory route sentence.
 - Keep language selection, sync state, install action, and the separate Payments & apps link compact and stable across languages.
-- Keep the collapsed checklist and weather cards equal-height at desktop sizes. Weather details must open without reflowing the page or overlapping the date navigation.
+- Use a compact header with no large decorative spacer. Put the plan-change timestamp in the footer on every screen size, not beside the title.
+- Stack a compact, full-width checklist row above the full-width weather slider. Align their outer edges, corner treatment, and spacing. A closed checklist must shrink to its summary content; do not stretch it to weather height or add blank filler. Opening it expands naturally. Weather details open in a dialog without reflowing the page or overlapping date navigation.
 - Show every itinerary date together in a horizontally scrollable weather summary, independent of the selected itinerary day. Use one equal-height narrow card per date with one aggregate row: wettest-stop icon, maximum high, minimum low, maximum rain chance, and a primary stop label plus `+N` for additional stops. A small timetable icon opens a native dialog or mobile bottom sheet; location chips switch one stop's semantic hourly table at a time, including temperature, precipitation chance, UV, wind, and sunrise/sunset.
 - Display plan-change and forecast-fetch timestamps in the viewer's current device time zone. Determine the active trip day in `trip.timezone`.
 - Keep required external attributions inside the collapsed Sources & photo credits disclosure.
 
 ## Itinerary
 
-- Use one heading: “Itinerary.”
+- Use one heading: “Itinerary.” Omit a second eyebrow or the redundant choose-a-date explanatory sentence.
 - Open the current trip date automatically; otherwise open the first day.
 - Show one selected day at a time, with large date/day/area controls.
 - Place flights and stays in the same chronological timeline as every other POI.
@@ -25,6 +26,7 @@ Preserve these behaviors unless the user explicitly requests a design change.
 - Keep the map synchronized to the active day and reframe all current markers.
 - Opening a timeline item focuses its marker without hiding it behind the mobile sheet.
 - A map-marker selection opens and scrolls to the corresponding plan.
+- On desktop, give the map a substantial sticky column (roughly 44–48% of the workspace) and a viewport-aware height. Keep the timeline readable; do not shrink the map into a thumbnail. Below the desktop breakpoint, preserve the dedicated mobile planner.
 - Show checklist items due on the selected itinerary date near the top of that day's content, before the timeline. Checklist dates may be before, during, or after the trip.
 
 Timeline summary tags have two rows:
@@ -72,6 +74,7 @@ When a full place URL is supplied, parse and save place name, address, final POI
 - Show a preview photo, short reason, exact Google Maps link, and current rating when available.
 - Use three cards per row on wide desktop and two per row on iPhone.
 - Keep cards compact and aligned across languages.
+- Do not build or request recommendation images until the section is first opened.
 
 ## Resources page
 
@@ -103,5 +106,8 @@ When a full place URL is supplied, parse and save place name, address, final POI
 - Weather freshness and plan update timestamps are current.
 - Long trips expose every equal-height compact weather date card through horizontal scrolling. Each card has one aggregate day row, and the per-date timetable icon opens a contained, scrollable details dialog on desktop and iPhone without shifting the page. Location chips switch one semantic hourly table at a time while preserving dialog scroll and returning focus to the opener.
 - Native date inputs never widen a dialog or extend beyond the iPhone viewport.
+- Closed checklist is compact above weather at desktop and phone widths; neither forces the other to grow.
+- A warm day/language change retains the Leaflet map and tile layer and does not reload unchanged tiles or full-size source photos.
+- A metadata-only synchronization event updates status without rebuilding the page.
 - Checklist items can be created before, during, or after the trip, and trip-date items appear in the matching itinerary day.
 - No developer-facing sentences, personal booking references, or citations clutter traveler content.

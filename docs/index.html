@@ -19,11 +19,11 @@
       }
     } catch (_) {}
   </script>
-  <link rel="manifest" href="./manifest.webmanifest?v=v-af917aee95a7">
-  <link rel="icon" href="./icons/icon-192.png?v=v-af917aee95a7" type="image/png" sizes="192x192">
-  <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png?v=v-af917aee95a7">
+  <link rel="manifest" href="./manifest.webmanifest?v=v-2a593c8ad96c">
+  <link rel="icon" href="./icons/icon-192.png?v=v-2a593c8ad96c" type="image/png" sizes="192x192">
+  <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png?v=v-2a593c8ad96c">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
-  <link rel="stylesheet" href="./styles.css?v=v-af917aee95a7">
+  <link rel="stylesheet" href="./styles.css?v=v-2a593c8ad96c">
   <style>
     .photo-frame img { object-fit: cover; }
     @media (min-width: 680px) { body { --trip-desktop-layout: 1; } }
@@ -50,7 +50,7 @@
             <span id="sync-status-text" data-i18n="connecting">Connecting…</span>
           </div>
           <button class="button button--light" id="install-app" type="button" hidden data-i18n="install">Install</button>
-          <a class="button button--light header-resource-link" href="./resources.html?v=v-af917aee95a7" data-i18n="paymentsAndApps">Payments & apps</a>
+          <a class="button button--light header-resource-link" href="./resources.html?v=v-2a593c8ad96c" data-i18n="paymentsAndApps">Payments & apps</a>
         </div>
       </div>
 
@@ -59,12 +59,11 @@
           <p class="hero-trip-meta" id="trip-date-range">Sample Coast · 2030-06-01 – 2030-06-02</p>
         </div>
         <div class="hero-title-lockup">
-          <img class="hero-title-icon" src="./icons/icon-192.png?v=v-af917aee95a7" width="104" height="104" alt="" aria-hidden="true">
+          <img class="hero-title-icon" src="./icons/icon-192.png?v=v-2a593c8ad96c" width="104" height="104" alt="" aria-hidden="true">
           <h1 id="trip-title">Tide Lines</h1>
         </div>
         <div class="hero-subline">
           <p class="hero-route" id="trip-route-decoration">Harbor · Old Town · Headland</p>
-          <p class="muted" id="last-updated" data-i18n="liveTripBoard">Live trip board</p>
         </div>
       </div>
     </div>
@@ -97,7 +96,6 @@
     <section class="itinerary" aria-labelledby="itinerary-title">
       <header class="itinerary-heading">
         <h2 class="itinerary-title" id="itinerary-title" data-i18n="itineraryTitle">Itinerary</h2>
-        <p class="itinerary-heading__note" data-i18n="oneDayAtATime">Choose a date to see that day’s plan. Today opens automatically during the trip.</p>
       </header>
 
       <a class="mobile-plan-launch" id="open-plan-view" href="?view=plan">
@@ -190,12 +188,16 @@
 
   <footer class="site-footer">
     <div class="footer-inner">
+      <div class="mobile-footer-tools" id="mobile-footer-tools"></div>
       <p data-i18n="anonymousFooter">If we get lost, the deer is officially our tour guide. 🦌</p>
       <div class="footer-attribution">
         <details class="footer-credits">
           <summary data-i18n="credits">Sources & photo credits</summary>
           <div class="footer-credits__list" id="credits-list"></div>
         </details>
+      </div>
+      <div class="mobile-footer-updated" id="mobile-footer-updated">
+        <p id="last-updated" data-i18n="liveTripBoard">Live trip board</p>
       </div>
     </div>
   </footer>
@@ -1089,7 +1091,7 @@
   },
   "tips": [],
   "disclaimer": "Check same-day conditions, opening hours, reservations, and transport notices before leaving.",
-  "buildId": "af917aee95a7"
+  "buildId": "2a593c8ad96c"
 }
   </script>
 
@@ -1155,16 +1157,24 @@
 
     function initTravelMap(elementId, points, opts) {
       opts = opts || {};
-      var map = L.map(elementId, { zoomControl: false });
-      map.attributionControl.setPrefix(false);
-      L.control.zoom({
-        zoomInTitle: opts.zoomInTitle || 'Zoom in',
-        zoomOutTitle: opts.zoomOutTitle || 'Zoom out'
-      }).addTo(map);
-      L.tileLayer(opts.tileUrl || 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: opts.attribution || '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        maxZoom: 19
-      }).addTo(map);
+      var map = opts.existingMap;
+      if (!map) {
+        map = L.map(elementId, { zoomControl: false });
+        map.attributionControl.setPrefix(false);
+        map.tripZoomControl = L.control.zoom().addTo(map);
+        L.tileLayer(opts.tileUrl || 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: opts.attribution || '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+          maxZoom: 19,
+          updateWhenIdle: true
+        }).addTo(map);
+        map.tripLayers = L.layerGroup().addTo(map);
+      }
+      map.tripLayers.clearLayers();
+      var zoomButtons = map.tripZoomControl.getContainer().querySelectorAll('a');
+      [opts.zoomInTitle || 'Zoom in', opts.zoomOutTitle || 'Zoom out'].forEach(function (title, index) {
+        zoomButtons[index].title = title;
+        zoomButtons[index].setAttribute('aria-label', title);
+      });
 
       var popupInsets = opts.fitBoundsOptions || {};
       var popupTopLeft = popupInsets.paddingTopLeft || [30, 30];
@@ -1187,7 +1197,7 @@
           + '<a target="_blank" rel="noopener noreferrer" href="' + escapeHTML(p.googleMapsUrl || buildGoogleMapsLink(p.lat, p.lng, p.name)) + '">'
           + escapeHTML(opts.googleMapsLabel || 'Open in Google Maps') + '</a>';
         var marker = L.marker([p.lat, p.lng], { icon: icon })
-          .addTo(map)
+          .addTo(map.tripLayers)
           .bindPopup(popupContent, popupOptions);
         if (typeof opts.onPointClick === 'function') {
           marker.on('click', function () { opts.onPointClick(p); });
@@ -1202,12 +1212,14 @@
       }, {});
       Object.keys(routeGroups).forEach(function (key) {
         if (routeGroups[key].length > 1) {
-          L.polyline(routeGroups[key], { dashArray: '6 8', weight: 2, color: '#db7549' }).addTo(map);
+          L.polyline(routeGroups[key], { dashArray: '6 8', weight: 2, color: '#db7549' }).addTo(map.tripLayers);
         }
       });
       var fitOptions = Object.assign({ padding: [30, 30], maxZoom: 13, animate: false }, opts.fitBoundsOptions || {});
-      if (coords.length > 1) map.fitBounds(coords, fitOptions);
-      else if (coords.length === 1) map.setView(coords[0], opts.singlePointZoom || 12);
+      if (!opts.deferFrame) {
+        if (coords.length > 1) map.fitBounds(coords, fitOptions);
+        else if (coords.length === 1) map.setView(coords[0], opts.singlePointZoom || 12);
+      }
       return map;
     }
 
@@ -1228,6 +1240,6 @@
       return '<span class="reminder-badge">Book about ' + leadDays + ' days ahead</span>';
     }
   </script>
-  <script type="module" src="./app.js?v=v-af917aee95a7"></script>
+  <script type="module" src="./app.js?v=v-2a593c8ad96c"></script>
 </body>
 </html>

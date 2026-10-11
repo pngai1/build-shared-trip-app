@@ -16,8 +16,8 @@ const regional = parseFullGoogleMapsPlaceUrl(placeUrl.replace("www.google.com", 
 assert.equal(regional.ok, true);
 
 const viewportOnly = parseFullGoogleMapsPlaceUrl("https://www.google.com/maps/place/Harbor+Museum/@38.707750,-9.136590,14z");
-assert.equal(viewportOnly.ok, true);
-assert.equal(viewportOnly.coordinateSource, "viewport");
+assert.equal(viewportOnly.ok, false);
+assert.equal(viewportOnly.reason, "missingCoordinates");
 
 for (const invalid of [
   "",

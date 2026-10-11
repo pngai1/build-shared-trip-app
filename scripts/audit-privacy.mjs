@@ -13,7 +13,7 @@ const forbidden = [
   { label: "Google Drive share URL", pattern: /https:\/\/(?:drive|docs)\.google\.com\//i },
   { label: "current trip participant initials", pattern: /\b(?:PN\s*[·./]\s*HG\s*[·./]\s*KW|CW\s*[·./]\s*SC)\b/i },
   { label: "current trip app title", pattern: /这个夏天[，,]\s*想和妳一起走走/ },
-  { label: "current Firebase project", pattern: /REPLACE_FIREBASE_PROJECT_ID/i },
+  { label: "production trip Firebase project", pattern: /(?:REPLACE_FIREBASE_PROJECT_ID|REPLACE_FIREBASE_PROJECT_ID)/i },
   { label: "current route destinations", pattern: /\b(?:Takachiho|Kagoshima|Kumamoto|Miyazaki|Fukuoka|Narita)\b/i },
   { label: "booking or identity secret key", pattern: /["'](?:confirmation_number|booking_reference|private_key|service_account|passport_number|card_number|cvv)["']\s*:/i }
 ];

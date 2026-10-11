@@ -223,6 +223,8 @@ Share links such as `maps.app.goo.gl/...` are intentionally rejected. The genera
 
 Each plan and recommendation needs `photo.url`, `photo.sourceUrl`, and `photo.credit`. Use an image you are licensed to reuse. Prefer official tourism media, Wikimedia Commons, or a user-supplied image. Record the creator and license. Do not scrape Google Maps, Tabelog, or commercial review photos.
 
+Keep the original photo/source/credit fields in the authoring JSON. The runtime selects bounded remote thumbnails; `scripts/optimize-photos.mjs` can additionally build local WebP previews and a URL-to-asset manifest after generation. See [responsive-performance.md](responsive-performance.md) for budgets, cache invalidation, and testing.
+
 ## Recommendations
 
 Each day requires at least:

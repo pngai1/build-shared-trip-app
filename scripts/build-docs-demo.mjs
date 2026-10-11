@@ -26,7 +26,8 @@ try {
   makeHtmlPathsRelative(path.join(docsDirectory, "resources.html"));
   makeServiceWorkerRegistrationRelative(path.join(docsDirectory, "app.js"));
   makeServiceWorkerRegistrationRelative(path.join(docsDirectory, "resources.js"));
-  makeServiceWorkerPathsRelative(path.join(docsDirectory, "service-worker.js"));
+  // The worker resolves shell/cache URLs against its own scope. Do not rewrite
+  // JavaScript string literals: URL.pathname comparisons must stay absolute.
   makeManifestPathsRelative(path.join(docsDirectory, "manifest.webmanifest"));
   console.log(`Regenerated ${docsDirectory}`);
 } finally {
@@ -42,12 +43,6 @@ function makeHtmlPathsRelative(file) {
 function makeServiceWorkerRegistrationRelative(file) {
   const content = fs.readFileSync(file, "utf8")
     .replace('navigator.serviceWorker.register("/service-worker.js")', 'navigator.serviceWorker.register("./service-worker.js")');
-  fs.writeFileSync(file, content);
-}
-
-function makeServiceWorkerPathsRelative(file) {
-  const content = fs.readFileSync(file, "utf8")
-    .replace(/(["'])\/(?!\/)/g, "$1./");
   fs.writeFileSync(file, content);
 }
 

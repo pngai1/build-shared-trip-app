@@ -11,6 +11,12 @@ const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const skillDirectory = path.dirname(scriptDirectory);
 const templateDirectory = path.join(skillDirectory, "assets", "app-template");
 const TEXT_EXTENSIONS = new Set([".html", ".js", ".json", ".webmanifest", ".rules", ".css", ".svg"]);
+const ICON_FILES = Object.freeze({
+  icon192: "icon-192.png",
+  icon512: "icon-512.png",
+  appleTouch: "apple-touch-icon.png",
+  svg: "icon.svg"
+});
 
 function usage() {
   console.error("Usage: node scripts/init-trip.mjs INPUT_JSON OUTPUT_DIR [--force] [--allow-example]");
@@ -87,11 +93,23 @@ function generateDocumentPath(input, slug) {
   return `trips/${slug}-${crypto.randomBytes(12).toString("hex")}`;
 }
 
-function buildHash(trip) {
-  const digest = crypto.createHash("sha256").update(JSON.stringify(trip));
+function buildHash(trip, deployment, icons, inputDirectory) {
+  const digest = crypto.createHash("sha256").update(JSON.stringify({ trip, deployment }, (_key, value) => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return value;
+    return Object.fromEntries(Object.entries(value).sort(([left], [right]) => left.localeCompare(right)));
+  }));
   walkFiles(templateDirectory).sort().forEach((file) => {
     digest.update(path.relative(templateDirectory, file));
     digest.update(fs.readFileSync(file));
+  });
+  // Icons and synchronization settings live outside the template, but are still
+  // browser-cached build inputs. Their contents must invalidate the PWA shell.
+  Object.entries(icons || {}).sort(([left], [right]) => left.localeCompare(right)).forEach(([key, value]) => {
+    if (!value) return;
+    const source = path.resolve(inputDirectory, value);
+    if (!fs.existsSync(source) || !fs.statSync(source).isFile()) throw new Error(`Custom icon not found: ${source}`);
+    digest.update(key);
+    digest.update(fs.readFileSync(source));
   });
   return digest.digest("hex").slice(0, 12);
 }
@@ -155,13 +173,7 @@ function walkFiles(directory) {
 
 function applyCustomIcons(app, inputDirectory, outputDirectory) {
   if (!app.icons) return;
-  const targets = {
-    icon192: "icon-192.png",
-    icon512: "icon-512.png",
-    appleTouch: "apple-touch-icon.png",
-    svg: "icon.svg"
-  };
-  for (const [key, outputName] of Object.entries(targets)) {
+  for (const [key, outputName] of Object.entries(ICON_FILES)) {
     if (!app.icons[key]) continue;
     const source = path.resolve(inputDirectory, app.icons[key]);
     if (!fs.existsSync(source) || !fs.statSync(source).isFile()) throw new Error(`Custom icon not found: ${source}`);
@@ -195,18 +207,26 @@ function main() {
   }
 
   const trip = normalizeTrip(input);
-  const contentHash = buildHash(trip);
+  const documentPath = generateDocumentPath(input, trip.slug);
+  const firestoreRegion = input.sync?.firestoreRegion || "nam5";
+  const firebaseConfig = publicFirebaseConfig(input.sync?.firebaseConfig);
+  const contentHash = buildHash(trip, { documentPath, firestoreRegion, firebaseConfig }, input.app.icons, path.dirname(inputFile));
   const cacheVersion = `v-${contentHash}`;
   trip.buildId = contentHash;
-  const documentPath = generateDocumentPath(input, trip.slug);
   const [collection, documentId] = documentPath.split("/");
-  const firestoreRegion = input.sync?.firestoreRegion || "nam5";
   const themeColor = input.app.theme?.ink || trip.theme?.ink || "#17362f";
 
   copyTemplate(outputDirectory, flags.includes("--force"));
   const normalizedInput = structuredClone(input);
   normalizedInput.sync ||= {};
   normalizedInput.sync.documentPath = documentPath;
+  if (input.app.icons) {
+    normalizedInput.app.icons = Object.fromEntries(
+      Object.entries(ICON_FILES)
+        .filter(([key]) => input.app.icons[key])
+        .map(([key, filename]) => [key, `public/icons/${filename}`])
+    );
+  }
   normalizedInput.trip = structuredClone(trip);
   delete normalizedInput.trip.title;
   delete normalizedInput.trip.shortName;
@@ -231,7 +251,7 @@ function main() {
     "__META_DESCRIPTION_JSON__": JSON.stringify(input.app.metaDescription),
     "__THEME_COLOR_JSON__": JSON.stringify(themeColor),
     "__TRIP_DATA_JSON__": scriptSafeJson(trip),
-    "__FIREBASE_CONFIG_JSON__": JSON.stringify(publicFirebaseConfig(input.sync?.firebaseConfig), null, 2),
+    "__FIREBASE_CONFIG_JSON__": JSON.stringify(firebaseConfig, null, 2),
     "__FIRESTORE_DOCUMENT_PATH_JSON__": JSON.stringify(documentPath),
     "__FIRESTORE_COLLECTION__": collection,
     "__FIRESTORE_DOCUMENT_ID__": documentId,

@@ -1,6 +1,7 @@
 import { firebaseConfig, tripDocumentPath } from "./firebase-config.js?v=__CACHE_VERSION__";
 import { getGooglePlaceLinks } from "./google-place-links.js?v=__CACHE_VERSION__";
-import { buildGoogleMapsUrl } from "./map-links.js?v=__CACHE_VERSION__";
+import { buildGoogleMapsUrl, normalizeGoogleMapsUrl } from "./map-links.js?v=__CACHE_VERSION__";
+import { optimizedPhotoUrl } from "./photo-assets.js?v=__CACHE_VERSION__";
 import { parseFullGoogleMapsPlaceUrl } from "./google-maps-place-url.js?v=__CACHE_VERSION__";
 import { computeReminders, remindersDueOnDate } from "./reminder-dates.js?v=__CACHE_VERSION__";
 import {
@@ -31,12 +32,19 @@ const APP_STORAGE_KEY = `${APP_NAMESPACE}-${APP_BUILD_ID}`;
 const APP_CHANNEL_NAME = `${APP_NAMESPACE}-${APP_BUILD_ID}`;
 const TRIP_TIMEZONE = seedTrip.timezone || "UTC";
 const itineraryViewMedia = window.matchMedia("(max-width: 679px), (max-height: 500px) and (pointer: coarse)");
+const mobileFooterMedia = window.matchMedia("(max-width: 679px), (max-height: 500px) and (pointer: coarse)");
 const els = {
   title: document.getElementById("trip-title"),
   dateRange: document.getElementById("trip-date-range"),
   status: document.getElementById("sync-status"),
   statusText: document.getElementById("sync-status-text"),
   updated: document.getElementById("last-updated"),
+  headerActions: document.querySelector(".header-actions"),
+  headerActionsHome: document.querySelector(".header-bar"),
+  pageShell: document.querySelector(".page-shell"),
+  tipsSection: document.querySelector(".tips-section"),
+  mobileFooterTools: document.getElementById("mobile-footer-tools"),
+  mobileFooterUpdated: document.getElementById("mobile-footer-updated"),
   install: document.getElementById("install-app"),
   installDialog: document.getElementById("install-dialog"),
   reminders: document.getElementById("reminder-list"),
@@ -110,6 +118,9 @@ let weatherDialogDayId = "";
 let weatherDialogLocationId = "";
 let weatherDialogReturnDayId = "";
 let currentMapPoints = [];
+let mapContentKey = "";
+let mapGeometryKey = "";
+let lastRemoteTripJSON = "";
 let mapResizeTimer = null;
 const ITINERARY_SHEET_MODES = Object.freeze(["itinerary", "balanced", "map"]);
 const ITINERARY_SHEET_DRAG_THRESHOLD_PX = 8;
@@ -132,6 +143,7 @@ const DAY_SLOT_ORDER = Object.freeze({});
 
 populateTimeOptions();
 syncItineraryViewClass();
+syncMobileFooterPlacement();
 applyLanguageToDocument();
 renderAll();
 setupInteractionHandlers();
@@ -1457,7 +1469,17 @@ function centerMapPointInVisibleArea(lat, lng, zoom, animate = false) {
 }
 
 function frameMapToPoints(points = currentMapPoints, animate = false) {
-  if (!mapInstance || !window.L || !points.length) return;
+  if (!mapInstance || !window.L) return;
+  const container = document.getElementById("map");
+  if (!container.clientWidth || !container.clientHeight) return;
+  // Placeholder-only days show the route overview without inventing POI pins.
+  if (!points.length) {
+    const tripPoints = displayTrip.days.flatMap((day) => day.slots || [])
+      .filter((slot) => !slot.mapLocationOmitted && Number.isFinite(slot.lat) && Number.isFinite(slot.lng));
+    if (tripPoints.length) frameMapToPoints(tripPoints, animate);
+    else mapInstance.setView([20, 0], 2, { animate: false });
+    return;
+  }
   if (points.length === 1) {
     const zoom = document.documentElement.classList.contains("is-itinerary-view") ? 11 : 12;
     centerMapPointInVisibleArea(points[0].lat, points[0].lng, zoom, animate);
@@ -1487,7 +1509,7 @@ function renderLocationPhoto(slot) {
   if (!url) return frame;
 
   const image = document.createElement("img");
-  image.src = url;
+  image.src = optimizedPhotoUrl(url);
   image.alt = ui(currentLanguage, "representativePhoto", { name: slot.name });
   image.loading = "lazy";
   image.decoding = "async";
@@ -1516,27 +1538,31 @@ function renderDayGuide(day) {
   );
   disclosure.append(summary);
 
-  const body = element("div", "day-guide__body");
-  if (guide.note) body.append(textElement("p", "guide-note", guide.note));
-  if (restaurants.length) {
-    const section = element("section", "guide-section");
-    section.append(textElement("h3", "guide-section__title", ui(currentLanguage, "additionalRestaurants")));
-    const grid = element("div", "recommendation-grid");
-    restaurants.forEach((restaurant) => grid.append(renderRecommendationCard(restaurant, true)));
-    section.append(grid);
-    body.append(section);
-  }
-
-  if (extras.length) {
-    const section = element("section", "guide-section");
-    section.append(textElement("h3", "guide-section__title", ui(currentLanguage, "famousNearby")));
-    const grid = element("div", "recommendation-grid recommendation-grid--extras");
-    extras.forEach((item) => grid.append(renderRecommendationCard(item, false)));
-    section.append(grid);
-    body.append(section);
-  }
-
-  disclosure.append(body);
+  // Keep the closed disclosure cheap: do not create images/cards until opened.
+  let bodyCreated = false;
+  disclosure.addEventListener("toggle", () => {
+    if (!disclosure.open || bodyCreated) return;
+    bodyCreated = true;
+    const body = element("div", "day-guide__body");
+    if (guide.note) body.append(textElement("p", "guide-note", guide.note));
+    if (restaurants.length) {
+      const section = element("section", "guide-section");
+      section.append(textElement("h3", "guide-section__title", ui(currentLanguage, "additionalRestaurants")));
+      const grid = element("div", "recommendation-grid");
+      restaurants.forEach((restaurant) => grid.append(renderRecommendationCard(restaurant, true)));
+      section.append(grid);
+      body.append(section);
+    }
+    if (extras.length) {
+      const section = element("section", "guide-section");
+      section.append(textElement("h3", "guide-section__title", ui(currentLanguage, "famousNearby")));
+      const grid = element("div", "recommendation-grid recommendation-grid--extras");
+      extras.forEach((item) => grid.append(renderRecommendationCard(item, false)));
+      section.append(grid);
+      body.append(section);
+    }
+    disclosure.append(body);
+  });
   return disclosure;
 }
 
@@ -1564,7 +1590,8 @@ function renderRecommendationCard(item, isRestaurant) {
   if (ratings.childNodes.length) card.append(ratings);
 
   const links = element("div", "resource-links");
-  if (item.mapsUrl) links.append(externalAnchor(ui(currentLanguage, "openGoogleMaps"), item.mapsUrl));
+  const mapsUrl = normalizeGoogleMapsUrl(item.mapsUrl);
+  if (mapsUrl) links.append(externalAnchor(ui(currentLanguage, "openGoogleMaps"), mapsUrl));
   if (item.tabelogUrl) links.append(externalAnchor(ui(currentLanguage, "openTabelog"), item.tabelogUrl));
   if (item.sourceUrl && !item.tabelogUrl) links.append(externalAnchor(ui(currentLanguage, "officialDetails"), item.sourceUrl));
   if (links.childNodes.length) card.append(links);
@@ -1582,7 +1609,7 @@ function renderRecommendationPhoto(item) {
   media.append(fallback);
 
   const image = document.createElement("img");
-  image.src = photoUrl;
+  image.src = optimizedPhotoUrl(photoUrl);
   image.alt = ui(currentLanguage, "representativePhoto", { name: item.name });
   image.loading = "lazy";
   image.decoding = "async";
@@ -1660,9 +1687,10 @@ function renderMap(attempt = 0) {
       name: timelineSlotName(slot),
       time: slot.time,
       routeGroup: slot.routeGroup || "shared-route",
+      mapLocationOmitted: slot.mapLocationOmitted,
       googleMapsUrl: googleMapsUrl(slot, { allowSearchFallback: false })
     }))
-    .filter((point) => Number.isFinite(point.lat) && Number.isFinite(point.lng));
+    .filter((point) => !point.mapLocationOmitted && Number.isFinite(point.lat) && Number.isFinite(point.lng));
   currentMapPoints = points;
 
   els.mapTitle.textContent = day ? getDayArea(day.id, currentLanguage) : ui(currentLanguage, "route");
@@ -1670,12 +1698,18 @@ function renderMap(attempt = 0) {
     ? `${ui(currentLanguage, "dayShort", { number: Math.max(1, dayIndex + 1) })} · ${formatDate(day.date, { weekday: "short", month: "short", day: "numeric" })}`
     : ui(currentLanguage, "activeDayRoute");
 
-  if (mapInstance) {
-    mapInstance.remove();
-    mapInstance = null;
+  const container = document.getElementById("map");
+  if (!container.clientWidth || !container.clientHeight) {
+    mapGeometryKey = "";
+    return;
   }
-  if (points.length) {
+  const nextContentKey = JSON.stringify([currentLanguage, points]);
+  const nextGeometryKey = JSON.stringify([day?.id, isItinerarySheetActive(), points.map(({ lat, lng }) => [lat, lng])]);
+  const needsFrame = nextGeometryKey !== mapGeometryKey;
+  if (!mapInstance || nextContentKey !== mapContentKey) {
     mapInstance = initTravelMap("map", points, {
+      existingMap: mapInstance,
+      deferFrame: true,
       googleMapsLabel: ui(currentLanguage, "openGoogleMaps"),
       zoomInTitle: ui(currentLanguage, "zoomIn"),
       zoomOutTitle: ui(currentLanguage, "zoomOut"),
@@ -1683,9 +1717,13 @@ function renderMap(attempt = 0) {
       fitBoundsOptions: mapFitBoundsOptions(false),
       singlePointZoom: document.documentElement.classList.contains("is-itinerary-view") ? 11 : 12
     });
+    mapContentKey = nextContentKey;
+  }
+  if (needsFrame) {
+    mapGeometryKey = nextGeometryKey;
     requestAnimationFrame(() => {
-      mapInstance?.invalidateSize();
-      frameMapToPoints(points, false);
+      mapInstance?.invalidateSize({ pan: false });
+      frameMapToPoints(currentMapPoints, false);
     });
   }
   els.mapOffline.hidden = navigator.onLine;
@@ -1742,6 +1780,21 @@ function closeItineraryView() {
   requestAnimationFrame(() => renderMap());
 }
 
+function syncMobileFooterPlacement() {
+  if (!els.mobileFooterTools || !els.mobileFooterUpdated) return;
+  if (mobileFooterMedia.matches) {
+    if (els.headerActions.parentElement !== els.mobileFooterTools) els.mobileFooterTools.append(els.headerActions);
+    if (els.tipsSection.parentElement !== els.mobileFooterTools) els.mobileFooterTools.append(els.tipsSection);
+    if (els.status.parentElement !== els.mobileFooterUpdated) els.mobileFooterUpdated.append(els.status);
+    return;
+  }
+  if (els.status.parentElement !== els.headerActions) {
+    els.headerActions.querySelector(".language-control")?.after(els.status);
+  }
+  if (els.headerActions.parentElement !== els.headerActionsHome) els.headerActionsHome.append(els.headerActions);
+  if (els.tipsSection.parentElement !== els.pageShell) els.pageShell.append(els.tipsSection);
+}
+
 function setupInteractionHandlers() {
   document.documentElement.classList.toggle("is-standalone", isStandaloneApp());
   document.documentElement.classList.toggle("is-ios", isIosDevice());
@@ -1781,12 +1834,13 @@ function setupInteractionHandlers() {
       renderMap();
     });
   });
+  mobileFooterMedia.addEventListener("change", syncMobileFooterPlacement);
   const refreshMapGeometry = () => {
     clearTimeout(mapResizeTimer);
     mapResizeTimer = setTimeout(() => requestAnimationFrame(() => {
       syncItinerarySheetPosition({ reframe: false });
-      mapInstance?.invalidateSize();
-      frameMapToPoints(currentMapPoints, false);
+      mapGeometryKey = "";
+      renderMap();
     }), 120);
   };
   window.addEventListener("orientationchange", () => {
@@ -2256,7 +2310,9 @@ async function connectRealtimeSync() {
       }
 
       const data = snapshot.data();
-      if (data.trip) {
+      const remoteTripJSON = data.trip ? JSON.stringify(data.trip) : "";
+      if (data.trip && remoteTripJSON !== lastRemoteTripJSON) {
+        lastRemoteTripJSON = remoteTripJSON;
         currentTrip = data.trip;
         persistLocalTrip();
         renderAll();
@@ -2583,11 +2639,15 @@ function googleMapsAnchor(location, options) {
 }
 
 function googleMapsDestinations(location = {}, { allowSearchFallback = true } = {}) {
-  const stored = parseFullGoogleMapsPlaceUrl(location.googleMapsUrl || location.mapsUrl || "");
-  if (stored.ok) return [{ url: stored.url }];
-  const verified = getGooglePlaceLinks(location);
+  if (location.mapLocationOmitted) return [];
+  const stored = normalizeGoogleMapsUrl(location.googleMapsUrl || location.mapsUrl || "");
+  if (stored) return [{ url: stored }];
+  const verified = getGooglePlaceLinks(location)
+    .map((entry) => ({ ...entry, url: normalizeGoogleMapsUrl(entry.url) }))
+    .filter((entry) => entry.url);
   if (verified.length) return verified;
   if (!allowSearchFallback) return [];
+  if (!String(location.address || "").trim() && !(Number.isFinite(location.lat) && Number.isFinite(location.lng))) return [];
   const fallbackUrl = buildGoogleMapsUrl(location);
   return fallbackUrl ? [{ url: fallbackUrl }] : [];
 }
